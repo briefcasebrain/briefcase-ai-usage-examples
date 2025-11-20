@@ -62,7 +62,7 @@ jobs:
         path: wheels
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
@@ -73,17 +73,37 @@ jobs:
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/  # Will be configured for private registry
+        TWINE_REPOSITORY_URL: https://upload.pypi.org/simple/
       run: |
         # Flatten wheel directory structure
         mkdir -p dist
         find wheels -name "*.whl" -exec cp {} dist/ \;
 
-        # Note: Configure your private registry URL in repository secrets
-        # For now, this will need manual configuration
-        echo "Wheels built and ready for private registry upload"
-        echo "Configure PRIVATE_REGISTRY_URL and credentials in secrets"
+        # List what we're about to publish
+        echo "📦 Publishing the following packages to GitHub Packages:"
         ls -la dist/
+
+        # Configure GitHub Packages as PyPI repository
+        cat > ~/.pypirc << EOF
+        [distutils]
+        index-servers = github
+
+        [github]
+        repository = https://upload.pypi.org/legacy/
+        username = __token__
+        password = ${{ secrets.GITHUB_TOKEN }}
+        EOF
+
+        # Publish to GitHub Packages PyPI registry
+        echo "🚀 Publishing to GitHub Packages..."
+        python -m twine upload dist/*.whl \
+          --repository-url https://upload.pypi.org/legacy/ \
+          --username __token__ \
+          --password ${{ secrets.GITHUB_TOKEN }} \
+          --verbose
+
+        echo "✅ Successfully published to GitHub Packages!"
+        echo "📦 Install with: pip install --index-url https://pypi.org/simple/ briefcase-ai-telemetry"
 
   create-release-assets:
     needs: build
