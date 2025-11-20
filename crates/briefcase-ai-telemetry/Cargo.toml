@@ -1,0 +1,42 @@
+[package]
+name = "briefcase-ai-telemetry"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
+
+[lib]
+name = "briefcase_ai_telemetry"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+reqwest = { workspace = true }
+futures = { workspace = true }
+regex = { workspace = true }
+
+# Python bindings
+pyo3 = { workspace = true, optional = true }
+
+[dev-dependencies]
+mockito = { workspace = true }
+tokio-test = "0.4"
+
+[features]
+default = ["python"]
+python = ["pyo3"]

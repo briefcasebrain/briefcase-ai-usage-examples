@@ -1,0 +1,193 @@
+# Rust
+target/
+# Include Cargo.lock for workspace projects to ensure reproducible builds
+# Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Documentation
+docs/_build/
+.readthedocs.yml
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node.js (if using for tooling)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp
+.scratch/
+
+# Build artifacts
+*.deb
+*.rpm
+*.dmg
+*.msi
+
+# Maturin
+*.whl
+
+# Local development
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Pre-commit
+.pre-commit-cache/
+
+# Claude Code settings
+.claude/
+
+# Analysis and internal documentation files
+*_ANALYSIS_*.md
+*_TEST_RESULTS.md
+*_VALIDATION_*.md
+IMPLEMENTATION_COMPLETE.md
+WEBSITE_DOCUMENTATION_UPDATES.md
+DOCUMENTATION_UPDATE_SUMMARY.md
+PRODUCTION_ENDPOINT_SUCCESS.md
+
+# Temporary test files
+test_*.py
+*_test.py
+integration_test.py
+
+# Local development files
+debug_*
+temp_*
+scratch_*
+*.local.*
+
+# API keys and secrets (just in case)
+*.key
+*.secret
+secrets.*
+
+# Personal notes
+NOTES.md
+PERSONAL_*.md
+
+# Open source cleanup plan (internal use)
+OPEN_SOURCE_CLEANUP_PLAN.md
