@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  pypi-server:
+    image: pypiserver/pypiserver:latest
+    container_name: briefcase-pypi-server
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./packages:/data/packages
+      - ./auth:/data/auth:ro
+      - ./config:/data/config:ro
+    environment:
+      - PYPI_PASSWORDS=/data/auth/.htpasswd
+    command: >
+      pypi-server
+      --port 8080
+      --host 0.0.0.0
+      --passwords /data/auth/.htpasswd
+      --authenticate upload
+      --disable-fallback
+      --log-stream stdout
+      --log-level INFO
+      --server-name "Briefcase AI Private PyPI"
+      /data/packages
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pypi.rule=Host(`pypi.briefcasebrain.com`)"
+      - "traefik.http.routers.pypi.tls=true"
+      - "traefik.http.routers.pypi.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pypi.loadbalancer.server.port=8080"
+
+  # Optional: Traefik reverse proxy with SSL
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik:ro
+      - ./ssl-certs:/ssl-certs
+    restart: unless-stopped
+    profiles: ["with-ssl"]
