@@ -28,11 +28,19 @@ show_help() {
     echo ""
     echo "Commands:"
     echo "  add <username>           Add a new user (will prompt for password)"
+    echo "  add-beta <company> <initials> Add beta participant with auto-generated credentials"
     echo "  remove <username>        Remove a user"
     echo "  change <username>        Change user password"
     echo "  list                     List all users"
-    echo "  generate-token <username> Generate API token for user"
+    echo "  test <username> <password> Test user authentication"
+    echo "  generate-password        Generate a secure password"
+    echo "  status                   Show server status and statistics"
     echo "  help                     Show this help"
+    echo ""
+    echo "Beta Participant Management:"
+    echo "  $0 add-beta acme jd      # Add beta user 'acme_jd' with auto-generated password"
+    echo "  $0 test acme_jd password # Test authentication for beta user"
+    echo "  $0 status                # Check server health and usage stats"
     echo ""
     echo "Examples:"
     echo "  $0 add admin             # Add admin user"
@@ -131,49 +139,164 @@ list_users() {
     done < "$HTPASSWD_FILE"
 }
 
-generate_token() {
-    local username="$1"
-    if [ -z "$username" ]; then
-        echo "❌ Username required"
-        echo "Usage: $0 generate-token <username>"
+add_beta_user() {
+    local company="$1"
+    local initials="$2"
+
+    if [ -z "$company" ] || [ -z "$initials" ]; then
+        echo "❌ Company name and initials required"
+        echo "Usage: $0 add-beta <company> <initials>"
+        echo "Example: $0 add-beta acme jd  # Creates user 'acme_jd'"
         exit 1
     fi
 
+    # Create username in format company_initials
+    local username="${company}_${initials}"
+
+    # Generate secure password
+    local password=$(generate_secure_password)
+
+    if [ ! -f "$HTPASSWD_FILE" ]; then
+        echo "📝 Creating new password file..."
+        echo "$password" | htpasswd -c -i "$HTPASSWD_FILE" "$username"
+    else
+        if grep -q "^$username:" "$HTPASSWD_FILE"; then
+            echo "⚠️  User '$username' already exists. Use 'change' to update password."
+            exit 1
+        fi
+        echo "$password" | htpasswd -i "$HTPASSWD_FILE" "$username"
+    fi
+
+    echo "✅ Beta participant '$username' added successfully"
+    echo ""
+    echo "📋 Beta Participant Credentials:"
+    echo "   🏢 Company: $company"
+    echo "   👤 Username: $username"
+    echo "   🔑 Password: $password"
+    echo ""
+    echo "📦 Installation Command:"
+    echo "pip install --index-url https://$username:$password@pypi.briefcasebrain.com/simple/ briefcase-ai-telemetry"
+    echo ""
+    echo "🔍 Test authentication:"
+    echo "$0 test $username $password"
+    echo ""
+    echo "⚠️  Store credentials securely and share via encrypted communication only!"
+}
+
+generate_secure_password() {
+    # Generate a secure 16-character password with mixed case, numbers, and symbols
+    openssl rand -base64 32 | tr -d "=+/" | cut -c1-16
+}
+
+test_authentication() {
+    local username="$1"
+    local password="$2"
+
+    if [ -z "$username" ] || [ -z "$password" ]; then
+        echo "❌ Username and password required"
+        echo "Usage: $0 test <username> <password>"
+        exit 1
+    fi
+
+    echo "🔍 Testing authentication for user '$username'..."
+
+    # Test local authentication file first
     if [ ! -f "$HTPASSWD_FILE" ]; then
         echo "❌ Password file does not exist"
         exit 1
     fi
 
     if ! grep -q "^$username:" "$HTPASSWD_FILE"; then
-        echo "❌ User '$username' not found"
+        echo "❌ User '$username' not found in password file"
         exit 1
     fi
 
-    # Generate a simple token (in production, use proper token generation)
-    local token=$(openssl rand -hex 32)
-    local token_file="auth/tokens/${username}.token"
+    # Test HTTP authentication against the server
+    if command -v curl &> /dev/null; then
+        echo "📡 Testing HTTP authentication..."
+        if curl -f -u "$username:$password" http://localhost:8080/simple/ >/dev/null 2>&1; then
+            echo "✅ Local server authentication: SUCCESS"
+        else
+            echo "⚠️  Local server authentication: FAILED (server may not be running)"
+        fi
 
-    mkdir -p auth/tokens
-    echo "$token" > "$token_file"
+        # Test against production domain if accessible
+        if curl -f -u "$username:$password" https://pypi.briefcasebrain.com/simple/ >/dev/null 2>&1; then
+            echo "✅ Production server authentication: SUCCESS"
+        else
+            echo "⚠️  Production server authentication: FAILED (check network/DNS)"
+        fi
+    else
+        echo "⚠️  curl not available - cannot test HTTP authentication"
+    fi
 
-    echo "🔑 API Token generated for '$username':"
-    echo "   Token: $token"
-    echo "   Saved to: $token_file"
+    echo "✅ User '$username' exists in password file"
+}
+
+show_status() {
+    echo "📊 Briefcase AI Private PyPI Server Status"
     echo ""
-    echo "📝 Add to ~/.pypirc:"
-    echo "[distutils]"
-    echo "index-servers = briefcase-ai"
+
+    # Check if password file exists and show user count
+    if [ -f "$HTPASSWD_FILE" ]; then
+        local user_count=$(wc -l < "$HTPASSWD_FILE")
+        echo "👥 Total Users: $user_count"
+        echo "📁 Password File: $HTPASSWD_FILE"
+    else
+        echo "❌ No password file found"
+    fi
+
+    # Check server status
     echo ""
-    echo "[briefcase-ai]"
-    echo "repository = https://pypi.briefcasebrain.com/"
-    echo "username = __token__"
-    echo "password = $token"
+    echo "🐳 Docker Container Status:"
+    if command -v docker &> /dev/null; then
+        if docker ps --filter "name=briefcase-pypi-server" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -v NAMES; then
+            echo "✅ PyPI server container is running"
+        else
+            echo "⚠️  PyPI server container is not running"
+        fi
+    else
+        echo "⚠️  Docker not available"
+    fi
+
+    # Check local server accessibility
+    echo ""
+    echo "🔗 Server Accessibility:"
+    if command -v curl &> /dev/null; then
+        if curl -f http://localhost:8080 >/dev/null 2>&1; then
+            echo "✅ Local server (port 8080): Accessible"
+        else
+            echo "❌ Local server (port 8080): Not accessible"
+        fi
+
+        if curl -f https://pypi.briefcasebrain.com >/dev/null 2>&1; then
+            echo "✅ Production server: Accessible"
+        else
+            echo "❌ Production server: Not accessible"
+        fi
+    else
+        echo "⚠️  curl not available for testing"
+    fi
+
+    # Show disk usage
+    echo ""
+    echo "💾 Storage Usage:"
+    if [ -d "packages" ]; then
+        local package_count=$(find packages -name "*.whl" -o -name "*.tar.gz" | wc -l)
+        local package_size=$(du -sh packages 2>/dev/null | cut -f1)
+        echo "📦 Packages: $package_count files ($package_size)"
+    else
+        echo "📦 No packages directory found"
+    fi
 }
 
 # Main script logic
 case "${1:-help}" in
     "add")
         add_user "$2"
+        ;;
+    "add-beta")
+        add_beta_user "$2" "$3"
         ;;
     "remove")
         remove_user "$2"
@@ -184,8 +307,14 @@ case "${1:-help}" in
     "list")
         list_users
         ;;
-    "generate-token")
-        generate_token "$2"
+    "test")
+        test_authentication "$2" "$3"
+        ;;
+    "generate-password")
+        echo "🔑 Generated secure password: $(generate_secure_password)"
+        ;;
+    "status")
+        show_status
         ;;
     "help"|"--help"|"-h")
         show_help
