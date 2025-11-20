@@ -1,0 +1,142 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "briefcase-ai-telemetry"
+dynamic = ["version"]
+description = "A high-performance telemetry SDK for AI applications"
+readme = "README.md"
+license = { text = "BSL-1.1" }
+authors = [
+    { name = "Aansh Shah", email = "aansh@briefcasebrain.com" }
+]
+maintainers = [
+    { name = "Aansh Shah", email = "aansh@briefcasebrain.com" }
+]
+homepage = "https://briefcase.ai"
+repository = "https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk"
+documentation = "https://docs.briefcase.ai/telemetry-sdk"
+keywords = ["telemetry", "ai", "monitoring", "analytics", "metrics", "observability"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Monitoring",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "mypy>=1.0",
+    "black>=22.0",
+    "isort>=5.0",
+    "ruff>=0.1",
+    "pre-commit>=3.0",
+    "maturin>=1.0",
+]
+test = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+    "pytest-mock>=3.0",
+]
+docs = [
+    "sphinx>=5.0",
+    "sphinx-rtd-theme>=1.0",
+    "myst-parser>=0.18",
+]
+
+[project.urls]
+Homepage = "https://briefcase.ai"
+Documentation = "https://docs.briefcase.ai/telemetry-sdk"
+Repository = "https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk"
+Changelog = "https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk/blob/main/CHANGELOG.md"
+"Bug Reports" = "https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk/issues"
+
+[tool.maturin]
+python-source = "python"
+module-name = "briefcase_ai_telemetry._internal"
+features = ["pyo3/extension-module"]
+strip = true
+manifest-path = "crates/briefcase-ai-telemetry/Cargo.toml"
+
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
+    "C901", # too complex
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests", "python/tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+[tool.coverage.run]
+source = ["briefcase_ai_telemetry"]
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]

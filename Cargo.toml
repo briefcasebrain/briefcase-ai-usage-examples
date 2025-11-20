@@ -1,0 +1,43 @@
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Briefcase AI <hello@briefcase.ai>"]
+license = "BSL-1.1"
+repository = "https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk"
+homepage = "https://briefcase.ai"
+documentation = "https://docs.rs/briefcase-ai-telemetry-sdk"
+description = "A high-performance telemetry SDK for AI applications with advanced drift detection, cost tracking, agent instrumentation, and compliance checking"
+keywords = ["telemetry", "ai", "monitoring", "analytics", "drift-detection", "cost-tracking", "compliance", "agents"]
+categories = ["development-tools", "web-programming", "science", "algorithms"]
+readme = "README.md"
+
+[workspace.dependencies]
+# Core dependencies
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Python bindings
+pyo3 = { version = "0.22", features = ["extension-module", "abi3-py39"] }
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+
+# Async
+futures = "0.3"
+
+# Text processing
+regex = "1.0"
+
+# Testing
+mockito = "1.0"
