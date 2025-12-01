@@ -306,7 +306,7 @@ impl MultiProtocolClient {
             .await;
 
         match result {
-            Ok(_) => return Ok(()),
+            Ok(_) => Ok(()),
             Err(e) => {
                 tracing::warn!("Primary client failed: {}", e);
 
@@ -318,13 +318,13 @@ impl MultiProtocolClient {
                     if fallback_client.send_telemetry(&fallback_data).await.is_ok() {
                         tracing::info!(
                             "Fallback client {} succeeded",
-                            fallback_client.protocol_type().to_string()
+                            fallback_client.protocol_type()
                         );
                         return Ok(());
                     }
                 }
 
-                return Err(e);
+                Err(e)
             }
         }
     }
@@ -343,7 +343,7 @@ impl MultiProtocolClient {
             .await;
 
         match result {
-            Ok(_) => return Ok(()),
+            Ok(_) => Ok(()),
             Err(e) => {
                 tracing::warn!("Primary client failed for agent run: {}", e);
 
@@ -352,13 +352,13 @@ impl MultiProtocolClient {
                     if fallback_client.send_agent_run(data).await.is_ok() {
                         tracing::info!(
                             "Fallback client {} succeeded for agent run",
-                            fallback_client.protocol_type().to_string()
+                            fallback_client.protocol_type()
                         );
                         return Ok(());
                     }
                 }
 
-                return Err(e);
+                Err(e)
             }
         }
     }
@@ -377,7 +377,7 @@ impl MultiProtocolClient {
             .await;
 
         match result {
-            Ok(_) => return Ok(()),
+            Ok(_) => Ok(()),
             Err(e) => {
                 tracing::warn!("Primary client failed for batch: {}", e);
 
@@ -386,13 +386,13 @@ impl MultiProtocolClient {
                     if fallback_client.send_batch(records).await.is_ok() {
                         tracing::info!(
                             "Fallback client {} succeeded for batch",
-                            fallback_client.protocol_type().to_string()
+                            fallback_client.protocol_type()
                         );
                         return Ok(());
                     }
                 }
 
-                return Err(e);
+                Err(e)
             }
         }
     }
@@ -430,13 +430,13 @@ impl MultiProtocolClient {
     }
 }
 
-impl ToString for EndpointType {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for EndpointType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            EndpointType::TrpcLegacy => "TrpcLegacy".to_string(),
-            EndpointType::RestApi => "RestApi".to_string(),
-            EndpointType::KinesisStream => "KinesisStream".to_string(),
-            EndpointType::LakefsDirect => "LakefsDirect".to_string(),
+            EndpointType::TrpcLegacy => write!(f, "TrpcLegacy"),
+            EndpointType::RestApi => write!(f, "RestApi"),
+            EndpointType::KinesisStream => write!(f, "KinesisStream"),
+            EndpointType::LakefsDirect => write!(f, "LakefsDirect"),
         }
     }
 }

@@ -711,7 +711,7 @@ mod tests {
             .inject_experiment_context(data, &experiments)
             .unwrap();
 
-        assert!(!result.get("experiments").is_some());
+        assert!(result.get("experiments").is_none());
         assert_eq!(result.get("test").unwrap(), "data");
     }
 

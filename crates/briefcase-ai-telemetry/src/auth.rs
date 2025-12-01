@@ -345,6 +345,7 @@ pub struct StsCredentialProvider {
     auth_mode: AuthMode,
     credentials: Arc<RwLock<StsCredentials>>,
     role_arn: Option<String>,
+    #[allow(dead_code)]
     http_client: reqwest::Client,
 }
 
@@ -452,7 +453,7 @@ impl AuthProvider for StsCredentialProvider {
         let credentials = self.credentials.read().await;
 
         // Generate AWS signature
-        let signature = self.generate_aws_signature(&*credentials);
+        let signature = self.generate_aws_signature(&credentials);
 
         Ok(signature)
     }

@@ -15,9 +15,10 @@ pub struct TelemetryConfig {
 }
 
 /// Enumeration of supported endpoint types for multi-protocol architecture
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub enum EndpointType {
     /// Legacy tRPC protocol (maintains backward compatibility)
+    #[default]
     TrpcLegacy,
     /// REST API protocol for standardized HTTP endpoints
     RestApi,
@@ -25,13 +26,6 @@ pub enum EndpointType {
     KinesisStream,
     /// Direct LakeFS integration for data versioning and lineage
     LakefsDirect,
-}
-
-impl Default for EndpointType {
-    fn default() -> Self {
-        // Default to legacy tRPC for backward compatibility
-        EndpointType::TrpcLegacy
-    }
 }
 
 /// Authentication modes for different protocol types and use cases

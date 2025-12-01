@@ -47,7 +47,7 @@ impl TrpcLegacyClient {
         let http_client = HttpClient::builder()
             .timeout(config.timeout)
             .build()
-            .map_err(|e| ProtocolError::NetworkError(e))?;
+            .map_err(ProtocolError::NetworkError)?;
 
         Ok(Self {
             config: config.clone(),
