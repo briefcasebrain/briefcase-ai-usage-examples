@@ -38,11 +38,20 @@ impl DefaultDataTransformer {
         organization: &OrganizationContext,
     ) -> ProtocolResult<JsonValue> {
         if let Some(obj) = data.as_object_mut() {
-            obj.insert("organization".to_string(), serde_json::to_value(organization)?);
+            obj.insert(
+                "organization".to_string(),
+                serde_json::to_value(organization)?,
+            );
 
             // Add flattened organization fields for easy querying
-            obj.insert("org_id".to_string(), JsonValue::String(organization.org_id.clone()));
-            obj.insert("agent_group".to_string(), JsonValue::String(organization.agent_group.clone()));
+            obj.insert(
+                "org_id".to_string(),
+                JsonValue::String(organization.org_id.clone()),
+            );
+            obj.insert(
+                "agent_group".to_string(),
+                JsonValue::String(organization.agent_group.clone()),
+            );
 
             if let Some(env) = &organization.environment {
                 obj.insert("environment".to_string(), JsonValue::String(env.clone()));
@@ -64,10 +73,14 @@ impl DefaultDataTransformer {
 
         if let Some(obj) = data.as_object_mut() {
             // Add full experiment details
-            obj.insert("experiments".to_string(), serde_json::to_value(experiments)?);
+            obj.insert(
+                "experiments".to_string(),
+                serde_json::to_value(experiments)?,
+            );
 
             // Add simplified experiment mapping for easy querying
-            let active_experiments: Vec<&ExperimentContext> = experiments.iter().filter(|e| e.active).collect();
+            let active_experiments: Vec<&ExperimentContext> =
+                experiments.iter().filter(|e| e.active).collect();
             if !active_experiments.is_empty() {
                 let experiment_map: HashMap<String, JsonValue> = active_experiments
                     .iter()
@@ -77,12 +90,15 @@ impl DefaultDataTransformer {
                             json!({
                                 "variant": exp.variant,
                                 "enrolled_at": exp.enrolled_at
-                            })
+                            }),
                         )
                     })
                     .collect();
 
-                obj.insert("active_experiment_variants".to_string(), serde_json::to_value(experiment_map)?);
+                obj.insert(
+                    "active_experiment_variants".to_string(),
+                    serde_json::to_value(experiment_map)?,
+                );
 
                 // Add list of active experiment IDs for filtering
                 let experiment_ids: Vec<&str> = active_experiments
@@ -90,7 +106,10 @@ impl DefaultDataTransformer {
                     .map(|e| e.experiment_id.as_str())
                     .collect();
 
-                obj.insert("active_experiment_ids".to_string(), serde_json::to_value(experiment_ids)?);
+                obj.insert(
+                    "active_experiment_ids".to_string(),
+                    serde_json::to_value(experiment_ids)?,
+                );
             }
         }
 
@@ -98,14 +117,27 @@ impl DefaultDataTransformer {
     }
 
     /// Adds common metadata to all transformations
-    fn add_common_metadata(&self, mut data: JsonValue, target_protocol: EndpointType) -> ProtocolResult<JsonValue> {
+    fn add_common_metadata(
+        &self,
+        mut data: JsonValue,
+        target_protocol: EndpointType,
+    ) -> ProtocolResult<JsonValue> {
         if let Some(obj) = data.as_object_mut() {
             // Add transformation metadata
-            obj.insert("transformation_timestamp".to_string(), serde_json::to_value(chrono::Utc::now())?);
-            obj.insert("target_protocol".to_string(), serde_json::to_value(target_protocol)?);
+            obj.insert(
+                "transformation_timestamp".to_string(),
+                serde_json::to_value(chrono::Utc::now())?,
+            );
+            obj.insert(
+                "target_protocol".to_string(),
+                serde_json::to_value(target_protocol)?,
+            );
 
             if self.include_debug_metadata {
-                obj.insert("sdk_version".to_string(), JsonValue::String(env!("CARGO_PKG_VERSION").to_string()));
+                obj.insert(
+                    "sdk_version".to_string(),
+                    JsonValue::String(env!("CARGO_PKG_VERSION").to_string()),
+                );
                 obj.insert("transformation_debug".to_string(), JsonValue::Bool(true));
             }
         }
@@ -118,23 +150,31 @@ impl DefaultDataTransformer {
         debug!("Transforming data to tRPC Legacy format");
 
         // Start with the telemetry data
-        let payload = data.serialize_json()
-            .map_err(|e| ProtocolError::TransformationError(format!("Failed to serialize telemetry data: {}", e)))?;
+        let payload = data.serialize_json().map_err(|e| {
+            ProtocolError::TransformationError(format!("Failed to serialize telemetry data: {}", e))
+        })?;
 
-        let mut json_data: JsonValue = serde_json::from_str(&payload)
-            .map_err(ProtocolError::SerializationError)?;
+        let mut json_data: JsonValue =
+            serde_json::from_str(&payload).map_err(ProtocolError::SerializationError)?;
 
         // Inject organization context if available
         if let Some(org) = data.session.metadata.get("organization") {
-            let org_context: OrganizationContext = serde_json::from_value(org.clone())
-                .map_err(|e| ProtocolError::TransformationError(format!("Invalid organization context: {}", e)))?;
+            let org_context: OrganizationContext =
+                serde_json::from_value(org.clone()).map_err(|e| {
+                    ProtocolError::TransformationError(format!(
+                        "Invalid organization context: {}",
+                        e
+                    ))
+                })?;
             json_data = self.inject_organization_context(json_data, &org_context)?;
         }
 
         // Inject experiment context if available
         if let Some(experiments) = data.session.metadata.get("experiments") {
-            let experiment_contexts: Vec<ExperimentContext> = serde_json::from_value(experiments.clone())
-                .map_err(|e| ProtocolError::TransformationError(format!("Invalid experiment context: {}", e)))?;
+            let experiment_contexts: Vec<ExperimentContext> =
+                serde_json::from_value(experiments.clone()).map_err(|e| {
+                    ProtocolError::TransformationError(format!("Invalid experiment context: {}", e))
+                })?;
             json_data = self.inject_experiment_context(json_data, &experiment_contexts)?;
         }
 
@@ -154,29 +194,40 @@ impl DefaultDataTransformer {
         debug!("Transforming data to REST API format");
 
         // Start with the telemetry data
-        let payload = data.serialize_json()
-            .map_err(|e| ProtocolError::TransformationError(format!("Failed to serialize telemetry data: {}", e)))?;
+        let payload = data.serialize_json().map_err(|e| {
+            ProtocolError::TransformationError(format!("Failed to serialize telemetry data: {}", e))
+        })?;
 
-        let mut json_data: JsonValue = serde_json::from_str(&payload)
-            .map_err(ProtocolError::SerializationError)?;
+        let mut json_data: JsonValue =
+            serde_json::from_str(&payload).map_err(ProtocolError::SerializationError)?;
 
         // Inject organization context if available
         if let Some(org) = data.session.metadata.get("organization") {
-            let org_context: OrganizationContext = serde_json::from_value(org.clone())
-                .map_err(|e| ProtocolError::TransformationError(format!("Invalid organization context: {}", e)))?;
+            let org_context: OrganizationContext =
+                serde_json::from_value(org.clone()).map_err(|e| {
+                    ProtocolError::TransformationError(format!(
+                        "Invalid organization context: {}",
+                        e
+                    ))
+                })?;
             json_data = self.inject_organization_context(json_data, &org_context)?;
         }
 
         // Inject experiment context if available
         if let Some(experiments) = data.session.metadata.get("experiments") {
-            let experiment_contexts: Vec<ExperimentContext> = serde_json::from_value(experiments.clone())
-                .map_err(|e| ProtocolError::TransformationError(format!("Invalid experiment context: {}", e)))?;
+            let experiment_contexts: Vec<ExperimentContext> =
+                serde_json::from_value(experiments.clone()).map_err(|e| {
+                    ProtocolError::TransformationError(format!("Invalid experiment context: {}", e))
+                })?;
             json_data = self.inject_experiment_context(json_data, &experiment_contexts)?;
         }
 
         // Add REST API specific fields
         if let Some(obj) = json_data.as_object_mut() {
-            obj.insert("api_version".to_string(), JsonValue::String("v1".to_string()));
+            obj.insert(
+                "api_version".to_string(),
+                JsonValue::String("v1".to_string()),
+            );
             obj.insert("format".to_string(), JsonValue::String("rest".to_string()));
         }
 
@@ -190,17 +241,24 @@ impl DefaultDataTransformer {
     fn transform_to_kinesis_stream(&self, data: &TelemetryData) -> ProtocolResult<Vec<JsonValue>> {
         debug!("Transforming data to Kinesis Stream format");
 
-        let payload = data.serialize_json()
-            .map_err(|e| ProtocolError::TransformationError(format!("Failed to serialize telemetry data: {}", e)))?;
+        let payload = data.serialize_json().map_err(|e| {
+            ProtocolError::TransformationError(format!("Failed to serialize telemetry data: {}", e))
+        })?;
 
-        let json_data: JsonValue = serde_json::from_str(&payload)
-            .map_err(ProtocolError::SerializationError)?;
+        let json_data: JsonValue =
+            serde_json::from_str(&payload).map_err(ProtocolError::SerializationError)?;
 
         // Get organization and experiment contexts
-        let org_context = data.session.metadata.get("organization")
+        let org_context = data
+            .session
+            .metadata
+            .get("organization")
             .and_then(|org| serde_json::from_value::<OrganizationContext>(org.clone()).ok());
 
-        let experiment_contexts = data.session.metadata.get("experiments")
+        let experiment_contexts = data
+            .session
+            .metadata
+            .get("experiments")
             .and_then(|exp| serde_json::from_value::<Vec<ExperimentContext>>(exp.clone()).ok())
             .unwrap_or_default();
 
@@ -220,8 +278,14 @@ impl DefaultDataTransformer {
                 // Add organization context
                 if let Some(org) = &org_context {
                     if let Some(obj) = kinesis_record.as_object_mut() {
-                        obj.insert("organization_id".to_string(), JsonValue::String(org.org_id.clone()));
-                        obj.insert("agent_group".to_string(), JsonValue::String(org.agent_group.clone()));
+                        obj.insert(
+                            "organization_id".to_string(),
+                            JsonValue::String(org.org_id.clone()),
+                        );
+                        obj.insert(
+                            "agent_group".to_string(),
+                            JsonValue::String(org.agent_group.clone()),
+                        );
 
                         if let Some(env) = &org.environment {
                             obj.insert("environment".to_string(), JsonValue::String(env.clone()));
@@ -232,12 +296,16 @@ impl DefaultDataTransformer {
                 // Add experiment context
                 if !experiment_contexts.is_empty() {
                     if let Some(obj) = kinesis_record.as_object_mut() {
-                        obj.insert("experiments".to_string(), serde_json::to_value(&experiment_contexts)?);
+                        obj.insert(
+                            "experiments".to_string(),
+                            serde_json::to_value(&experiment_contexts)?,
+                        );
                     }
                 }
 
                 // Add common metadata
-                kinesis_record = self.add_common_metadata(kinesis_record, EndpointType::KinesisStream)?;
+                kinesis_record =
+                    self.add_common_metadata(kinesis_record, EndpointType::KinesisStream)?;
 
                 kinesis_records.push(kinesis_record);
             }
@@ -255,8 +323,14 @@ impl DefaultDataTransformer {
             // Add organization context
             if let Some(org) = &org_context {
                 if let Some(obj) = session_record.as_object_mut() {
-                    obj.insert("organization_id".to_string(), JsonValue::String(org.org_id.clone()));
-                    obj.insert("agent_group".to_string(), JsonValue::String(org.agent_group.clone()));
+                    obj.insert(
+                        "organization_id".to_string(),
+                        JsonValue::String(org.org_id.clone()),
+                    );
+                    obj.insert(
+                        "agent_group".to_string(),
+                        JsonValue::String(org.agent_group.clone()),
+                    );
 
                     if let Some(env) = &org.environment {
                         obj.insert("environment".to_string(), JsonValue::String(env.clone()));
@@ -267,11 +341,15 @@ impl DefaultDataTransformer {
             // Add experiment context
             if !experiment_contexts.is_empty() {
                 if let Some(obj) = session_record.as_object_mut() {
-                    obj.insert("experiments".to_string(), serde_json::to_value(&experiment_contexts)?);
+                    obj.insert(
+                        "experiments".to_string(),
+                        serde_json::to_value(&experiment_contexts)?,
+                    );
                 }
             }
 
-            session_record = self.add_common_metadata(session_record, EndpointType::KinesisStream)?;
+            session_record =
+                self.add_common_metadata(session_record, EndpointType::KinesisStream)?;
             kinesis_records.push(session_record);
         }
 
@@ -283,30 +361,44 @@ impl DefaultDataTransformer {
     fn transform_to_lakefs_direct(&self, data: &TelemetryData) -> ProtocolResult<JsonValue> {
         debug!("Transforming data to LakeFS Direct format");
 
-        let payload = data.serialize_json()
-            .map_err(|e| ProtocolError::TransformationError(format!("Failed to serialize telemetry data: {}", e)))?;
+        let payload = data.serialize_json().map_err(|e| {
+            ProtocolError::TransformationError(format!("Failed to serialize telemetry data: {}", e))
+        })?;
 
-        let mut json_data: JsonValue = serde_json::from_str(&payload)
-            .map_err(ProtocolError::SerializationError)?;
+        let mut json_data: JsonValue =
+            serde_json::from_str(&payload).map_err(ProtocolError::SerializationError)?;
 
         // Inject organization context if available
         if let Some(org) = data.session.metadata.get("organization") {
-            let org_context: OrganizationContext = serde_json::from_value(org.clone())
-                .map_err(|e| ProtocolError::TransformationError(format!("Invalid organization context: {}", e)))?;
+            let org_context: OrganizationContext =
+                serde_json::from_value(org.clone()).map_err(|e| {
+                    ProtocolError::TransformationError(format!(
+                        "Invalid organization context: {}",
+                        e
+                    ))
+                })?;
             json_data = self.inject_organization_context(json_data, &org_context)?;
         }
 
         // Inject experiment context if available
         if let Some(experiments) = data.session.metadata.get("experiments") {
-            let experiment_contexts: Vec<ExperimentContext> = serde_json::from_value(experiments.clone())
-                .map_err(|e| ProtocolError::TransformationError(format!("Invalid experiment context: {}", e)))?;
+            let experiment_contexts: Vec<ExperimentContext> =
+                serde_json::from_value(experiments.clone()).map_err(|e| {
+                    ProtocolError::TransformationError(format!("Invalid experiment context: {}", e))
+                })?;
             json_data = self.inject_experiment_context(json_data, &experiment_contexts)?;
         }
 
         // Add LakeFS specific metadata
         if let Some(obj) = json_data.as_object_mut() {
-            obj.insert("lakefs_object_type".to_string(), JsonValue::String("telemetry_data".to_string()));
-            obj.insert("data_version".to_string(), JsonValue::String("v1".to_string()));
+            obj.insert(
+                "lakefs_object_type".to_string(),
+                JsonValue::String("telemetry_data".to_string()),
+            );
+            obj.insert(
+                "data_version".to_string(),
+                JsonValue::String("v1".to_string()),
+            );
 
             // Add partitioning information for efficient querying
             let now = chrono::Utc::now();
@@ -330,7 +422,11 @@ impl Default for DefaultDataTransformer {
 }
 
 impl DataTransformer for DefaultDataTransformer {
-    fn transform_telemetry_data(&self, data: &TelemetryData, target_protocol: EndpointType) -> ProtocolResult<Vec<u8>> {
+    fn transform_telemetry_data(
+        &self,
+        data: &TelemetryData,
+        target_protocol: EndpointType,
+    ) -> ProtocolResult<Vec<u8>> {
         let transformed_data = match target_protocol {
             EndpointType::TrpcLegacy => self.transform_to_trpc_legacy(data)?,
             EndpointType::RestApi => self.transform_to_rest_api(data)?,
@@ -342,21 +438,31 @@ impl DataTransformer for DefaultDataTransformer {
             EndpointType::LakefsDirect => self.transform_to_lakefs_direct(data)?,
         };
 
-        let serialized = serde_json::to_vec(&transformed_data)
-            .map_err(ProtocolError::SerializationError)?;
+        let serialized =
+            serde_json::to_vec(&transformed_data).map_err(ProtocolError::SerializationError)?;
 
-        debug!("Transformed telemetry data to {} format ({} bytes)",
-               target_protocol.to_string(), serialized.len());
+        debug!(
+            "Transformed telemetry data to {} format ({} bytes)",
+            target_protocol.to_string(),
+            serialized.len()
+        );
 
         Ok(serialized)
     }
 
-    fn transform_agent_run_data(&self, data: &JsonValue, target_protocol: EndpointType) -> ProtocolResult<Vec<u8>> {
+    fn transform_agent_run_data(
+        &self,
+        data: &JsonValue,
+        target_protocol: EndpointType,
+    ) -> ProtocolResult<Vec<u8>> {
         let mut agent_data = data.clone();
 
         // Add agent run specific metadata
         if let Some(obj) = agent_data.as_object_mut() {
-            obj.insert("data_type".to_string(), JsonValue::String("agent_run".to_string()));
+            obj.insert(
+                "data_type".to_string(),
+                JsonValue::String("agent_run".to_string()),
+            );
         }
 
         // Transform based on protocol
@@ -370,8 +476,14 @@ impl DataTransformer for DefaultDataTransformer {
             EndpointType::RestApi => {
                 // Add REST API metadata
                 if let Some(obj) = agent_data.as_object_mut() {
-                    obj.insert("api_version".to_string(), JsonValue::String("v1".to_string()));
-                    obj.insert("endpoint".to_string(), JsonValue::String("agent_runs".to_string()));
+                    obj.insert(
+                        "api_version".to_string(),
+                        JsonValue::String("v1".to_string()),
+                    );
+                    obj.insert(
+                        "endpoint".to_string(),
+                        JsonValue::String("agent_runs".to_string()),
+                    );
                 }
                 agent_data
             }
@@ -386,7 +498,10 @@ impl DataTransformer for DefaultDataTransformer {
             EndpointType::LakefsDirect => {
                 // Add LakeFS metadata
                 if let Some(obj) = agent_data.as_object_mut() {
-                    obj.insert("lakefs_object_type".to_string(), JsonValue::String("agent_run".to_string()));
+                    obj.insert(
+                        "lakefs_object_type".to_string(),
+                        JsonValue::String("agent_run".to_string()),
+                    );
 
                     let now = chrono::Utc::now();
                     obj.insert("year".to_string(), JsonValue::Number(now.year().into()));
@@ -400,16 +515,23 @@ impl DataTransformer for DefaultDataTransformer {
         // Add common metadata
         let final_data = self.add_common_metadata(transformed_data, target_protocol.clone())?;
 
-        let serialized = serde_json::to_vec(&final_data)
-            .map_err(ProtocolError::SerializationError)?;
+        let serialized =
+            serde_json::to_vec(&final_data).map_err(ProtocolError::SerializationError)?;
 
-        debug!("Transformed agent run data to {} format ({} bytes)",
-               target_protocol.to_string(), serialized.len());
+        debug!(
+            "Transformed agent run data to {} format ({} bytes)",
+            target_protocol.to_string(),
+            serialized.len()
+        );
 
         Ok(serialized)
     }
 
-    fn transform_batch_data(&self, records: &[JsonValue], target_protocol: EndpointType) -> ProtocolResult<Vec<u8>> {
+    fn transform_batch_data(
+        &self,
+        records: &[JsonValue],
+        target_protocol: EndpointType,
+    ) -> ProtocolResult<Vec<u8>> {
         if records.is_empty() {
             return Ok(Vec::new());
         }
@@ -437,7 +559,8 @@ impl DataTransformer for DefaultDataTransformer {
             }
             EndpointType::KinesisStream => {
                 // Convert each record to Kinesis format
-                let kinesis_records: Result<Vec<JsonValue>, ProtocolError> = records.iter()
+                let kinesis_records: Result<Vec<JsonValue>, ProtocolError> = records
+                    .iter()
                     .enumerate()
                     .map(|(i, record)| -> Result<JsonValue, ProtocolError> {
                         Ok(json!({
@@ -476,11 +599,15 @@ impl DataTransformer for DefaultDataTransformer {
         // Add common metadata
         let final_data = self.add_common_metadata(transformed_data, target_protocol.clone())?;
 
-        let serialized = serde_json::to_vec(&final_data)
-            .map_err(ProtocolError::SerializationError)?;
+        let serialized =
+            serde_json::to_vec(&final_data).map_err(ProtocolError::SerializationError)?;
 
-        debug!("Transformed batch data ({} records) to {} format ({} bytes)",
-               records.len(), target_protocol.to_string(), serialized.len());
+        debug!(
+            "Transformed batch data ({} records) to {} format ({} bytes)",
+            records.len(),
+            target_protocol.to_string(),
+            serialized.len()
+        );
 
         Ok(serialized)
     }
@@ -489,25 +616,33 @@ impl DataTransformer for DefaultDataTransformer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Session, EventBuilder, EventLevel, EventMetadata};
+    use crate::{EventBuilder, EventLevel, EventMetadata, Session};
 
     fn create_test_telemetry_data() -> TelemetryData {
         let mut session = Session::new();
 
         // Add organization context to session metadata
-        let org_context = OrganizationContext::new("org_123", "ml_agents")
-            .with_environment("test");
-        session.metadata.insert("organization".to_string(), serde_json::to_value(&org_context).unwrap());
+        let org_context = OrganizationContext::new("org_123", "ml_agents").with_environment("test");
+        session.metadata.insert(
+            "organization".to_string(),
+            serde_json::to_value(&org_context).unwrap(),
+        );
 
         // Add experiment context to session metadata
-        let experiment = ExperimentContext::new("exp_456", "variant_a")
-            .with_name("Test Experiment");
-        session.metadata.insert("experiments".to_string(), serde_json::to_value(vec![experiment]).unwrap());
+        let experiment =
+            ExperimentContext::new("exp_456", "variant_a").with_name("Test Experiment");
+        session.metadata.insert(
+            "experiments".to_string(),
+            serde_json::to_value(vec![experiment]).unwrap(),
+        );
 
         let mut data = TelemetryData::new(session);
 
         let mut event_metadata = EventMetadata::new();
-        event_metadata.custom_data.insert("key".to_string(), serde_json::Value::String("value".to_string()));
+        event_metadata.custom_data.insert(
+            "key".to_string(),
+            serde_json::Value::String("value".to_string()),
+        );
 
         let event = EventBuilder::new("test_event".to_string())
             .level(EventLevel::Info)
@@ -530,11 +665,12 @@ mod tests {
     #[test]
     fn test_inject_organization_context() {
         let transformer = DefaultDataTransformer::new();
-        let org_context = OrganizationContext::new("org_123", "ml_agents")
-            .with_environment("test");
+        let org_context = OrganizationContext::new("org_123", "ml_agents").with_environment("test");
 
         let data = json!({ "test": "data" });
-        let result = transformer.inject_organization_context(data, &org_context).unwrap();
+        let result = transformer
+            .inject_organization_context(data, &org_context)
+            .unwrap();
 
         assert!(result.get("organization").is_some());
         assert_eq!(result.get("org_id").unwrap(), "org_123");
@@ -546,21 +682,22 @@ mod tests {
     #[test]
     fn test_inject_experiment_context() {
         let transformer = DefaultDataTransformer::new();
-        let experiment = ExperimentContext::new("exp_123", "variant_a")
-            .with_name("Test Experiment");
+        let experiment =
+            ExperimentContext::new("exp_123", "variant_a").with_name("Test Experiment");
         let experiments = vec![experiment];
 
         let data = json!({ "test": "data" });
-        let result = transformer.inject_experiment_context(data, &experiments).unwrap();
+        let result = transformer
+            .inject_experiment_context(data, &experiments)
+            .unwrap();
 
         assert!(result.get("experiments").is_some());
         assert!(result.get("active_experiment_variants").is_some());
         assert!(result.get("active_experiment_ids").is_some());
         assert_eq!(result.get("test").unwrap(), "data");
 
-        let experiment_ids: Vec<String> = serde_json::from_value(
-            result.get("active_experiment_ids").unwrap().clone()
-        ).unwrap();
+        let experiment_ids: Vec<String> =
+            serde_json::from_value(result.get("active_experiment_ids").unwrap().clone()).unwrap();
         assert_eq!(experiment_ids, vec!["exp_123"]);
     }
 
@@ -570,7 +707,9 @@ mod tests {
         let experiments = vec![];
 
         let data = json!({ "test": "data" });
-        let result = transformer.inject_experiment_context(data, &experiments).unwrap();
+        let result = transformer
+            .inject_experiment_context(data, &experiments)
+            .unwrap();
 
         assert!(!result.get("experiments").is_some());
         assert_eq!(result.get("test").unwrap(), "data");
@@ -581,7 +720,9 @@ mod tests {
         let transformer = DefaultDataTransformer::new().with_debug_metadata();
         let data = json!({ "test": "data" });
 
-        let result = transformer.add_common_metadata(data, EndpointType::RestApi).unwrap();
+        let result = transformer
+            .add_common_metadata(data, EndpointType::RestApi)
+            .unwrap();
 
         assert!(result.get("transformation_timestamp").is_some());
         assert_eq!(result.get("target_protocol").unwrap(), "RestApi");
@@ -633,7 +774,10 @@ mod tests {
         assert!(first_record.get("session_id").is_some());
         assert!(first_record.get("organization_id").is_some());
         assert!(first_record.get("experiments").is_some());
-        assert_eq!(first_record.get("target_protocol").unwrap(), "KinesisStream");
+        assert_eq!(
+            first_record.get("target_protocol").unwrap(),
+            "KinesisStream"
+        );
     }
 
     #[test]
@@ -669,10 +813,18 @@ mod tests {
 
         for protocol in protocols.iter() {
             let result = transformer.transform_telemetry_data(&data, protocol.clone());
-            assert!(result.is_ok(), "Failed to transform for protocol: {:?}", protocol);
+            assert!(
+                result.is_ok(),
+                "Failed to transform for protocol: {:?}",
+                protocol
+            );
 
             let bytes = result.unwrap();
-            assert!(!bytes.is_empty(), "Empty result for protocol: {:?}", protocol);
+            assert!(
+                !bytes.is_empty(),
+                "Empty result for protocol: {:?}",
+                protocol
+            );
         }
     }
 
@@ -685,7 +837,9 @@ mod tests {
             "status": "completed"
         });
 
-        let result = transformer.transform_agent_run_data(&agent_data, EndpointType::RestApi).unwrap();
+        let result = transformer
+            .transform_agent_run_data(&agent_data, EndpointType::RestApi)
+            .unwrap();
         let parsed: JsonValue = serde_json::from_slice(&result).unwrap();
 
         assert_eq!(parsed.get("data_type").unwrap(), "agent_run");
@@ -702,7 +856,9 @@ mod tests {
             json!({ "id": 2, "data": "second" }),
         ];
 
-        let result = transformer.transform_batch_data(&records, EndpointType::RestApi).unwrap();
+        let result = transformer
+            .transform_batch_data(&records, EndpointType::RestApi)
+            .unwrap();
         let parsed: JsonValue = serde_json::from_slice(&result).unwrap();
 
         assert_eq!(parsed.get("batch_size").unwrap(), 2);
@@ -720,7 +876,9 @@ mod tests {
         let transformer = DefaultDataTransformer::new();
         let records: Vec<JsonValue> = vec![];
 
-        let result = transformer.transform_batch_data(&records, EndpointType::RestApi).unwrap();
+        let result = transformer
+            .transform_batch_data(&records, EndpointType::RestApi)
+            .unwrap();
         assert!(result.is_empty());
     }
 }

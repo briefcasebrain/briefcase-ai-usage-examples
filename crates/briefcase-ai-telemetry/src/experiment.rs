@@ -86,7 +86,10 @@ pub struct ExperimentUpdate {
 #[async_trait]
 pub trait ExperimentManager: Send + Sync {
     /// Enrolls the client in available experiments
-    async fn enroll_experiments(&mut self, org_context: &OrganizationContext) -> ExperimentResult<Vec<ExperimentContext>>;
+    async fn enroll_experiments(
+        &mut self,
+        org_context: &OrganizationContext,
+    ) -> ExperimentResult<Vec<ExperimentContext>>;
 
     /// Updates experiment status (for example, when an experiment ends)
     async fn update_experiments(&mut self) -> ExperimentResult<()>;
@@ -101,7 +104,10 @@ pub trait ExperimentManager: Send + Sync {
     async fn is_experiment_active(&self, experiment_id: &str) -> bool;
 
     /// Gets configuration for a specific experiment
-    async fn get_experiment_config(&self, experiment_id: &str) -> Option<HashMap<String, serde_json::Value>>;
+    async fn get_experiment_config(
+        &self,
+        experiment_id: &str,
+    ) -> Option<HashMap<String, serde_json::Value>>;
 }
 
 /// Default implementation of experiment manager with backend integration
@@ -136,8 +142,14 @@ impl DefaultExperimentManager {
     }
 
     /// Fetches experiment enrollments from backend
-    async fn fetch_enrollments(&self, org_context: &OrganizationContext) -> ExperimentResult<ExperimentEnrollmentResponse> {
-        let enrollment_url = format!("{}/api/v1/experiments/enroll", self.backend_url.trim_end_matches('/'));
+    async fn fetch_enrollments(
+        &self,
+        org_context: &OrganizationContext,
+    ) -> ExperimentResult<ExperimentEnrollmentResponse> {
+        let enrollment_url = format!(
+            "{}/api/v1/experiments/enroll",
+            self.backend_url.trim_end_matches('/')
+        );
 
         let enrollment_request = serde_json::json!({
             "organization_id": org_context.org_id,
@@ -150,7 +162,8 @@ impl DefaultExperimentManager {
 
         debug!("Fetching experiment enrollments from: {}", enrollment_url);
 
-        let response = self.http_client
+        let response = self
+            .http_client
             .post(&enrollment_url)
             .header("Content-Type", "application/json")
             .header("Authorization", format!("Bearer {}", self.api_key))
@@ -164,25 +177,33 @@ impl DefaultExperimentManager {
 
         if response.status().is_success() {
             let enrollment_response: ExperimentEnrollmentResponse = response.json().await?;
-            info!("Successfully enrolled in {} experiments", enrollment_response.experiments.len());
+            info!(
+                "Successfully enrolled in {} experiments",
+                enrollment_response.experiments.len()
+            );
             Ok(enrollment_response)
         } else {
             let status = response.status();
             let error_text = response.text().await.unwrap_or_default();
-            Err(ExperimentError::EnrollmentFailed(
-                format!("HTTP {}: {}", status, error_text)
-            ))
+            Err(ExperimentError::EnrollmentFailed(format!(
+                "HTTP {}: {}",
+                status, error_text
+            )))
         }
     }
 
     /// Fetches experiment updates from backend
     async fn fetch_updates(&self) -> ExperimentResult<Vec<ExperimentUpdate>> {
         let enrollment_id = self.enrollment_id.read().await;
-        let enrollment_id = enrollment_id.as_ref()
-            .ok_or_else(|| ExperimentError::UpdateFailed("No enrollment ID available".to_string()))?;
+        let enrollment_id = enrollment_id.as_ref().ok_or_else(|| {
+            ExperimentError::UpdateFailed("No enrollment ID available".to_string())
+        })?;
 
-        let updates_url = format!("{}/api/v1/experiments/updates/{}",
-            self.backend_url.trim_end_matches('/'), enrollment_id);
+        let updates_url = format!(
+            "{}/api/v1/experiments/updates/{}",
+            self.backend_url.trim_end_matches('/'),
+            enrollment_id
+        );
 
         // Add query parameter for last update time if available
         let url_with_params = if let Some(last_update) = *self.last_update.read().await {
@@ -193,7 +214,8 @@ impl DefaultExperimentManager {
 
         debug!("Fetching experiment updates from: {}", url_with_params);
 
-        let response = self.http_client
+        let response = self
+            .http_client
             .get(&url_with_params)
             .header("Authorization", format!("Bearer {}", self.api_key))
             .header(
@@ -214,7 +236,10 @@ impl DefaultExperimentManager {
         } else {
             let status = response.status();
             let error_text = response.text().await.unwrap_or_default();
-            warn!("Failed to fetch experiment updates: HTTP {}: {}", status, error_text);
+            warn!(
+                "Failed to fetch experiment updates: HTTP {}: {}",
+                status, error_text
+            );
             Ok(Vec::new()) // Don't fail completely for update errors
         }
     }
@@ -229,7 +254,10 @@ impl DefaultExperimentManager {
 
         for update in updates {
             // Find and update the experiment
-            if let Some(experiment) = experiments.iter_mut().find(|e| e.experiment_id == update.experiment_id) {
+            if let Some(experiment) = experiments
+                .iter_mut()
+                .find(|e| e.experiment_id == update.experiment_id)
+            {
                 experiment.active = update.active;
 
                 // Apply configuration changes
@@ -237,9 +265,15 @@ impl DefaultExperimentManager {
                     experiment.config.insert(key, value);
                 }
 
-                info!("Updated experiment {}: active={}", update.experiment_id, update.active);
+                info!(
+                    "Updated experiment {}: active={}",
+                    update.experiment_id, update.active
+                );
             } else {
-                warn!("Received update for unknown experiment: {}", update.experiment_id);
+                warn!(
+                    "Received update for unknown experiment: {}",
+                    update.experiment_id
+                );
             }
         }
 
@@ -261,7 +295,8 @@ impl DefaultExperimentManager {
     /// Checks if experiments need updating based on time interval
     async fn should_update(&self) -> bool {
         if let Some(last_update) = *self.last_update.read().await {
-            chrono::Utc::now() - last_update > chrono::Duration::from_std(self.update_interval).unwrap()
+            chrono::Utc::now() - last_update
+                > chrono::Duration::from_std(self.update_interval).unwrap()
         } else {
             true
         }
@@ -270,8 +305,14 @@ impl DefaultExperimentManager {
 
 #[async_trait]
 impl ExperimentManager for DefaultExperimentManager {
-    async fn enroll_experiments(&mut self, org_context: &OrganizationContext) -> ExperimentResult<Vec<ExperimentContext>> {
-        debug!("Enrolling in experiments for organization: {}", org_context.org_id);
+    async fn enroll_experiments(
+        &mut self,
+        org_context: &OrganizationContext,
+    ) -> ExperimentResult<Vec<ExperimentContext>> {
+        debug!(
+            "Enrolling in experiments for organization: {}",
+            org_context.org_id
+        );
 
         // Fetch enrollments from backend
         let enrollment_response = self.fetch_enrollments(org_context).await?;
@@ -292,7 +333,10 @@ impl ExperimentManager for DefaultExperimentManager {
         // Update last update time
         *self.last_update.write().await = Some(chrono::Utc::now());
 
-        info!("Successfully enrolled in {} experiments", experiment_contexts.len());
+        info!(
+            "Successfully enrolled in {} experiments",
+            experiment_contexts.len()
+        );
         Ok(experiment_contexts)
     }
 
@@ -340,7 +384,7 @@ impl ExperimentManager for DefaultExperimentManager {
             // Add to event metadata
             event.metadata.custom_data.insert(
                 "experiments".to_string(),
-                serde_json::to_value(experiment_data).unwrap_or(serde_json::Value::Null)
+                serde_json::to_value(experiment_data).unwrap_or(serde_json::Value::Null),
             );
 
             // Also add a simple list of active experiment IDs for easy filtering
@@ -352,7 +396,7 @@ impl ExperimentManager for DefaultExperimentManager {
 
             event.metadata.custom_data.insert(
                 "active_experiments".to_string(),
-                serde_json::to_value(active_experiment_ids).unwrap_or(serde_json::Value::Null)
+                serde_json::to_value(active_experiment_ids).unwrap_or(serde_json::Value::Null),
             );
 
             debug!("Tagged event with {} active experiments", experiments.len());
@@ -360,7 +404,9 @@ impl ExperimentManager for DefaultExperimentManager {
     }
 
     async fn get_active_experiments(&self) -> Vec<ExperimentContext> {
-        self.experiments.read().await
+        self.experiments
+            .read()
+            .await
             .iter()
             .filter(|e| e.active)
             .cloned()
@@ -368,13 +414,20 @@ impl ExperimentManager for DefaultExperimentManager {
     }
 
     async fn is_experiment_active(&self, experiment_id: &str) -> bool {
-        self.experiments.read().await
+        self.experiments
+            .read()
+            .await
             .iter()
             .any(|e| e.experiment_id == experiment_id && e.active)
     }
 
-    async fn get_experiment_config(&self, experiment_id: &str) -> Option<HashMap<String, serde_json::Value>> {
-        self.experiments.read().await
+    async fn get_experiment_config(
+        &self,
+        experiment_id: &str,
+    ) -> Option<HashMap<String, serde_json::Value>> {
+        self.experiments
+            .read()
+            .await
             .iter()
             .find(|e| e.experiment_id == experiment_id && e.active)
             .map(|e| e.config.clone())
@@ -386,7 +439,10 @@ pub struct NoOpExperimentManager;
 
 #[async_trait]
 impl ExperimentManager for NoOpExperimentManager {
-    async fn enroll_experiments(&mut self, _org_context: &OrganizationContext) -> ExperimentResult<Vec<ExperimentContext>> {
+    async fn enroll_experiments(
+        &mut self,
+        _org_context: &OrganizationContext,
+    ) -> ExperimentResult<Vec<ExperimentContext>> {
         Ok(Vec::new())
     }
 
@@ -406,7 +462,10 @@ impl ExperimentManager for NoOpExperimentManager {
         false
     }
 
-    async fn get_experiment_config(&self, _experiment_id: &str) -> Option<HashMap<String, serde_json::Value>> {
+    async fn get_experiment_config(
+        &self,
+        _experiment_id: &str,
+    ) -> Option<HashMap<String, serde_json::Value>> {
         None
     }
 }
@@ -416,7 +475,10 @@ pub struct ExperimentManagerFactory;
 
 impl ExperimentManagerFactory {
     /// Creates a default experiment manager with backend integration
-    pub fn create_default(backend_url: impl Into<String>, api_key: impl Into<String>) -> Box<dyn ExperimentManager> {
+    pub fn create_default(
+        backend_url: impl Into<String>,
+        api_key: impl Into<String>,
+    ) -> Box<dyn ExperimentManager> {
         Box::new(DefaultExperimentManager::new(backend_url, api_key))
     }
 
@@ -469,15 +531,15 @@ mod tests {
         assert_eq!(context.experiment_name, Some("Test Experiment".to_string()));
         assert_eq!(context.variant, "variant_a");
         assert!(context.active);
-        assert_eq!(context.config.get("feature_enabled"), Some(&serde_json::Value::Bool(true)));
+        assert_eq!(
+            context.config.get("feature_enabled"),
+            Some(&serde_json::Value::Bool(true))
+        );
     }
 
     #[tokio::test]
     async fn test_default_experiment_manager_creation() {
-        let manager = DefaultExperimentManager::new(
-            "https://api.example.com",
-            "test_api_key"
-        );
+        let manager = DefaultExperimentManager::new("https://api.example.com", "test_api_key");
 
         assert_eq!(manager.backend_url, "https://api.example.com");
         assert_eq!(manager.api_key, "test_api_key");
@@ -486,10 +548,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_default_experiment_manager_with_custom_interval() {
-        let manager = DefaultExperimentManager::new(
-            "https://api.example.com",
-            "test_api_key"
-        ).with_update_interval(Duration::from_secs(60));
+        let manager = DefaultExperimentManager::new("https://api.example.com", "test_api_key")
+            .with_update_interval(Duration::from_secs(60));
 
         assert_eq!(manager.update_interval, Duration::from_secs(60));
     }
@@ -551,7 +611,7 @@ mod tests {
         // Test with valid backend configuration
         let manager1 = ExperimentManagerFactory::from_config(
             Some("https://api.example.com".to_string()),
-            Some("api_key".to_string())
+            Some("api_key".to_string()),
         );
         // Can't easily test the type without downcasting, but this tests creation
 
@@ -560,10 +620,8 @@ mod tests {
         // Should create no-op manager
 
         // Test with empty configuration
-        let manager3 = ExperimentManagerFactory::from_config(
-            Some("".to_string()),
-            Some("".to_string())
-        );
+        let manager3 =
+            ExperimentManagerFactory::from_config(Some("".to_string()), Some("".to_string()));
         // Should create no-op manager
 
         // Test creation succeeds
@@ -584,7 +642,10 @@ mod tests {
             enrolled_at: chrono::Utc::now(),
             config: {
                 let mut map = HashMap::new();
-                map.insert("param1".to_string(), serde_json::Value::String("value1".to_string()));
+                map.insert(
+                    "param1".to_string(),
+                    serde_json::Value::String("value1".to_string()),
+                );
                 map
             },
             active: true,
@@ -607,9 +668,16 @@ mod tests {
 
         // Should only tag with active experiments
         assert!(event.metadata.custom_data.contains_key("experiments"));
-        assert!(event.metadata.custom_data.contains_key("active_experiments"));
+        assert!(event
+            .metadata
+            .custom_data
+            .contains_key("active_experiments"));
 
-        let active_experiments = event.metadata.custom_data.get("active_experiments").unwrap();
+        let active_experiments = event
+            .metadata
+            .custom_data
+            .get("active_experiments")
+            .unwrap();
         let active_ids: Vec<String> = serde_json::from_value(active_experiments.clone()).unwrap();
         assert_eq!(active_ids, vec!["exp_1"]);
     }

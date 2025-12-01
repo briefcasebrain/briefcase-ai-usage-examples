@@ -52,18 +52,23 @@ impl KinesisStreamClient {
         };
 
         // Extract Kinesis-specific configuration
-        let kinesis_config = config.protocol_configs
+        let kinesis_config = config
+            .protocol_configs
             .get(&EndpointType::KinesisStream)
-            .ok_or_else(|| ProtocolError::ConfigurationError(
-                "Missing Kinesis Stream protocol configuration".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                ProtocolError::ConfigurationError(
+                    "Missing Kinesis Stream protocol configuration".to_string(),
+                )
+            })?;
 
         let stream_name = kinesis_config
             .get("stream_name")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| ProtocolError::ConfigurationError(
-                "Missing stream_name in Kinesis configuration".to_string(),
-            ))?
+            .ok_or_else(|| {
+                ProtocolError::ConfigurationError(
+                    "Missing stream_name in Kinesis configuration".to_string(),
+                )
+            })?
             .to_string();
 
         let partition_key_field = kinesis_config
@@ -98,15 +103,24 @@ impl KinesisStreamClient {
         // Add organization context if present
         if let Some(org) = &self.config.organization {
             if let Some(obj) = record.as_object_mut() {
-                obj.insert("organization_id".to_string(), serde_json::Value::String(org.org_id.clone()));
-                obj.insert("agent_group".to_string(), serde_json::Value::String(org.agent_group.clone()));
+                obj.insert(
+                    "organization_id".to_string(),
+                    serde_json::Value::String(org.org_id.clone()),
+                );
+                obj.insert(
+                    "agent_group".to_string(),
+                    serde_json::Value::String(org.agent_group.clone()),
+                );
             }
         }
 
         // Add experiment context if present
         if !self.config.experiments.is_empty() {
             if let Some(obj) = record.as_object_mut() {
-                obj.insert("experiments".to_string(), serde_json::to_value(&self.config.experiments)?);
+                obj.insert(
+                    "experiments".to_string(),
+                    serde_json::to_value(&self.config.experiments)?,
+                );
             }
         }
 
@@ -118,7 +132,11 @@ impl KinesisStreamClient {
         // This is a placeholder implementation
         // In a real implementation, this would use the AWS SDK for Kinesis
 
-        debug!("Sending {} records to Kinesis stream: {}", records.len(), self.stream_name);
+        debug!(
+            "Sending {} records to Kinesis stream: {}",
+            records.len(),
+            self.stream_name
+        );
 
         // TODO: Implement actual Kinesis sending logic with AWS SDK
         // Example structure:
@@ -131,11 +149,19 @@ impl KinesisStreamClient {
         // For now, just log the records being sent
         for (i, record) in records.iter().enumerate() {
             let partition_key = self.get_partition_key(record);
-            debug!("Record {}: partition_key={}, size={} bytes",
-                   i, partition_key, serde_json::to_vec(record)?.len());
+            debug!(
+                "Record {}: partition_key={}, size={} bytes",
+                i,
+                partition_key,
+                serde_json::to_vec(record)?.len()
+            );
         }
 
-        info!("Successfully sent {} records to Kinesis stream: {}", records.len(), self.stream_name);
+        info!(
+            "Successfully sent {} records to Kinesis stream: {}",
+            records.len(),
+            self.stream_name
+        );
         Ok(())
     }
 }
@@ -165,7 +191,10 @@ impl ProtocolClient for KinesisStreamClient {
         // Add record type for agent runs
         let mut agent_data = data.clone();
         if let Some(obj) = agent_data.as_object_mut() {
-            obj.insert("record_type".to_string(), serde_json::Value::String("agent_run".to_string()));
+            obj.insert(
+                "record_type".to_string(),
+                serde_json::Value::String("agent_run".to_string()),
+            );
         }
 
         // Format as Kinesis record
@@ -190,7 +219,10 @@ impl ProtocolClient for KinesisStreamClient {
         for record in records {
             let mut batch_record = record.clone();
             if let Some(obj) = batch_record.as_object_mut() {
-                obj.insert("record_type".to_string(), serde_json::Value::String("batch".to_string()));
+                obj.insert(
+                    "record_type".to_string(),
+                    serde_json::Value::String("batch".to_string()),
+                );
             }
 
             let kinesis_record = self.format_kinesis_record(batch_record)?;
@@ -200,7 +232,10 @@ impl ProtocolClient for KinesisStreamClient {
         // Send batch to Kinesis
         self.send_to_kinesis(kinesis_records).await?;
 
-        info!("Batch data ({} records) sent successfully via Kinesis Stream", records.len());
+        info!(
+            "Batch data ({} records) sent successfully via Kinesis Stream",
+            records.len()
+        );
         Ok(())
     }
 
@@ -220,19 +255,24 @@ impl ProtocolClient for KinesisStreamClient {
         }
 
         // Check for Kinesis-specific configuration
-        let kinesis_config = config.protocol_configs
+        let kinesis_config = config
+            .protocol_configs
             .get(&EndpointType::KinesisStream)
-            .ok_or_else(|| ProtocolError::ConfigurationError(
-                "Missing Kinesis Stream protocol configuration".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                ProtocolError::ConfigurationError(
+                    "Missing Kinesis Stream protocol configuration".to_string(),
+                )
+            })?;
 
         // Validate stream name
         let stream_name = kinesis_config
             .get("stream_name")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| ProtocolError::ConfigurationError(
-                "Missing stream_name in Kinesis configuration".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                ProtocolError::ConfigurationError(
+                    "Missing stream_name in Kinesis configuration".to_string(),
+                )
+            })?;
 
         if stream_name.is_empty() {
             return Err(ProtocolError::ConfigurationError(
@@ -285,7 +325,7 @@ mod tests {
             "AKIA123456789",
             "secret_access_key",
             "us-east-1",
-            "test-telemetry-stream"
+            "test-telemetry-stream",
         )
         .with_endpoint(EndpointType::KinesisStream, "")
     }
@@ -304,7 +344,10 @@ mod tests {
 
         let client = KinesisStreamClient::new(&config);
         assert!(client.is_err());
-        assert!(matches!(client.unwrap_err(), ProtocolError::ConfigurationError(_)));
+        assert!(matches!(
+            client.unwrap_err(),
+            ProtocolError::ConfigurationError(_)
+        ));
     }
 
     #[test]
@@ -314,7 +357,10 @@ mod tests {
 
         let client = KinesisStreamClient::new(&config);
         assert!(client.is_err());
-        assert!(matches!(client.unwrap_err(), ProtocolError::ConfigurationError(_)));
+        assert!(matches!(
+            client.unwrap_err(),
+            ProtocolError::ConfigurationError(_)
+        ));
     }
 
     #[test]
@@ -387,9 +433,8 @@ mod tests {
 
     #[test]
     fn test_validate_config_missing_stream_name() {
-        let config = EnhancedTelemetryConfig::with_sts_credentials(
-            "access", "secret", "region", "stream"
-        );
+        let config =
+            EnhancedTelemetryConfig::with_sts_credentials("access", "secret", "region", "stream");
 
         // Remove the protocol config to simulate missing stream_name
         let mut invalid_config = config.clone();

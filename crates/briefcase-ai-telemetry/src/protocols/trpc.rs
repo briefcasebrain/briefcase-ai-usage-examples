@@ -80,7 +80,10 @@ impl TrpcLegacyClient {
     }
 
     /// Wraps data in tRPC format with API key
-    fn wrap_in_trpc_format(&self, mut data: serde_json::Value) -> ProtocolResult<serde_json::Value> {
+    fn wrap_in_trpc_format(
+        &self,
+        mut data: serde_json::Value,
+    ) -> ProtocolResult<serde_json::Value> {
         let api_key = self.get_api_key()?;
 
         // Add apiKey to the payload data
@@ -98,7 +101,10 @@ impl TrpcLegacyClient {
         // Add experiment context if present
         if !self.config.experiments.is_empty() {
             if let Some(obj) = data.as_object_mut() {
-                obj.insert("experiments".to_string(), serde_json::to_value(&self.config.experiments)?);
+                obj.insert(
+                    "experiments".to_string(),
+                    serde_json::to_value(&self.config.experiments)?,
+                );
             }
         }
 
@@ -109,7 +115,11 @@ impl TrpcLegacyClient {
     }
 
     /// Makes an HTTP request with retry logic
-    async fn make_request(&self, endpoint: &str, payload: &serde_json::Value) -> ProtocolResult<()> {
+    async fn make_request(
+        &self,
+        endpoint: &str,
+        payload: &serde_json::Value,
+    ) -> ProtocolResult<()> {
         let auth_header = self.get_auth_header()?;
 
         for attempt in 1..=self.config.retry_attempts {
@@ -132,9 +142,13 @@ impl TrpcLegacyClient {
                         debug!("tRPC request successful: {}", response.status());
 
                         // Parse tRPC response to check for errors
-                        let response_text = response.text().await.map_err(ProtocolError::NetworkError)?;
-                        if let Ok(trpc_response) = serde_json::from_str::<serde_json::Value>(&response_text) {
-                            if let Some(error) = trpc_response.get("0").and_then(|v| v.get("error")) {
+                        let response_text =
+                            response.text().await.map_err(ProtocolError::NetworkError)?;
+                        if let Ok(trpc_response) =
+                            serde_json::from_str::<serde_json::Value>(&response_text)
+                        {
+                            if let Some(error) = trpc_response.get("0").and_then(|v| v.get("error"))
+                            {
                                 let error_msg = error
                                     .get("message")
                                     .and_then(|m| m.as_str())
@@ -173,7 +187,10 @@ impl TrpcLegacyClient {
                             } else {
                                 return Err(ProtocolError::ProtocolSpecific {
                                     protocol: EndpointType::TrpcLegacy,
-                                    message: format!("Rate limited. Retry after {} seconds", retry_after_value),
+                                    message: format!(
+                                        "Rate limited. Retry after {} seconds",
+                                        retry_after_value
+                                    ),
                                 });
                             }
                         }
@@ -228,7 +245,8 @@ impl ProtocolClient for TrpcLegacyClient {
         let trpc_payload = self.wrap_in_trpc_format(payload_data)?;
 
         // Make the request
-        self.make_request(&self.config.endpoint_url, &trpc_payload).await?;
+        self.make_request(&self.config.endpoint_url, &trpc_payload)
+            .await?;
 
         info!("Telemetry data sent successfully via tRPC Legacy");
         Ok(())
@@ -247,7 +265,8 @@ impl ProtocolClient for TrpcLegacyClient {
         let trpc_payload = self.wrap_in_trpc_format(data.clone())?;
 
         // Make the request
-        self.make_request(&agent_run_endpoint, &trpc_payload).await?;
+        self.make_request(&agent_run_endpoint, &trpc_payload)
+            .await?;
 
         info!("Agent run data sent successfully via tRPC Legacy");
         Ok(())
@@ -277,7 +296,10 @@ impl ProtocolClient for TrpcLegacyClient {
         // Make the request
         self.make_request(&batch_endpoint, &trpc_payload).await?;
 
-        info!("Batch data ({} records) sent successfully via tRPC Legacy", records.len());
+        info!(
+            "Batch data ({} records) sent successfully via tRPC Legacy",
+            records.len()
+        );
         Ok(())
     }
 
@@ -374,7 +396,10 @@ mod tests {
 
     fn create_test_config() -> EnhancedTelemetryConfig {
         EnhancedTelemetryConfig::with_api_key("bca_test_key")
-            .with_endpoint(EndpointType::TrpcLegacy, "https://test.example.com/api/trpc/ingest.telemetry")
+            .with_endpoint(
+                EndpointType::TrpcLegacy,
+                "https://test.example.com/api/trpc/ingest.telemetry",
+            )
             .with_timeout(Duration::from_secs(5))
             .with_retry_attempts(2)
     }
@@ -388,22 +413,32 @@ mod tests {
 
     #[test]
     fn test_trpc_client_invalid_endpoint_type() {
-        let config = EnhancedTelemetryConfig::with_jwt_token("token")
-            .with_endpoint(EndpointType::RestApi, "https://test.example.com/api/v1/telemetry");
+        let config = EnhancedTelemetryConfig::with_jwt_token("token").with_endpoint(
+            EndpointType::RestApi,
+            "https://test.example.com/api/v1/telemetry",
+        );
 
         let client = TrpcLegacyClient::new(&config);
         assert!(client.is_err());
-        assert!(matches!(client.unwrap_err(), ProtocolError::ConfigurationError(_)));
+        assert!(matches!(
+            client.unwrap_err(),
+            ProtocolError::ConfigurationError(_)
+        ));
     }
 
     #[test]
     fn test_trpc_client_invalid_auth_mode() {
-        let config = EnhancedTelemetryConfig::with_jwt_token("token")
-            .with_endpoint(EndpointType::TrpcLegacy, "https://test.example.com/api/trpc/ingest.telemetry");
+        let config = EnhancedTelemetryConfig::with_jwt_token("token").with_endpoint(
+            EndpointType::TrpcLegacy,
+            "https://test.example.com/api/trpc/ingest.telemetry",
+        );
 
         let client = TrpcLegacyClient::new(&config);
         assert!(client.is_err());
-        assert!(matches!(client.unwrap_err(), ProtocolError::ConfigurationError(_)));
+        assert!(matches!(
+            client.unwrap_err(),
+            ProtocolError::ConfigurationError(_)
+        ));
     }
 
     #[test]
@@ -418,7 +453,9 @@ mod tests {
     #[test]
     fn test_get_auth_header_bearer_token() {
         let config = EnhancedTelemetryConfig {
-            auth: AuthMode::ApiKey { key: "bearer_token".to_string() },
+            auth: AuthMode::ApiKey {
+                key: "bearer_token".to_string(),
+            },
             endpoint_type: EndpointType::TrpcLegacy,
             endpoint_url: "https://test.example.com/api/trpc/ingest.telemetry".to_string(),
             ..create_test_config()
@@ -495,7 +532,9 @@ mod tests {
         let client = TrpcLegacyClient::new(&config).unwrap();
 
         let invalid_config = EnhancedTelemetryConfig {
-            auth: AuthMode::JwtToken { token: "token".to_string() },
+            auth: AuthMode::JwtToken {
+                token: "token".to_string(),
+            },
             ..config
         };
 

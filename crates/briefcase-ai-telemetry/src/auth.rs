@@ -99,9 +99,8 @@ impl StsCredentials {
 
     /// Gets time until expiration
     pub fn time_until_expiration(&self) -> Option<Duration> {
-        self.expiration.and_then(|exp| {
-            exp.duration_since(SystemTime::now()).ok()
-        })
+        self.expiration
+            .and_then(|exp| exp.duration_since(SystemTime::now()).ok())
     }
 }
 
@@ -127,7 +126,9 @@ impl ApiKeyProvider {
     /// Creates a new API key provider
     pub fn new(api_key: impl Into<String>) -> Self {
         Self {
-            auth_mode: AuthMode::ApiKey { key: api_key.into() },
+            auth_mode: AuthMode::ApiKey {
+                key: api_key.into(),
+            },
         }
     }
 }
@@ -171,7 +172,9 @@ impl JwtProvider {
     /// Creates a new JWT provider
     pub fn new(token: impl Into<String>) -> Self {
         Self {
-            auth_mode: AuthMode::JwtToken { token: token.into() },
+            auth_mode: AuthMode::JwtToken {
+                token: token.into(),
+            },
             token_cache: Arc::new(RwLock::new(None)),
             refresh_client: reqwest::Client::new(),
             refresh_endpoint: None,
@@ -184,7 +187,9 @@ impl JwtProvider {
         refresh_endpoint: impl Into<String>,
     ) -> Self {
         Self {
-            auth_mode: AuthMode::JwtToken { token: token.into() },
+            auth_mode: AuthMode::JwtToken {
+                token: token.into(),
+            },
             token_cache: Arc::new(RwLock::new(None)),
             refresh_client: reqwest::Client::new(),
             refresh_endpoint: Some(refresh_endpoint.into()),
@@ -206,9 +211,8 @@ impl JwtProvider {
         // Decode payload (base64url)
         let payload = parts[1];
         // Simplified base64 decoding - would use proper base64url decoding
-        let decoded = base64::decode(payload).map_err(|_| {
-            AuthError::TokenValidationError("Invalid base64 encoding".to_string())
-        })?;
+        let decoded = base64::decode(payload)
+            .map_err(|_| AuthError::TokenValidationError("Invalid base64 encoding".to_string()))?;
 
         let claims: JwtClaims = serde_json::from_slice(&decoded)
             .map_err(|e| AuthError::TokenValidationError(format!("Invalid JSON: {}", e)))?;
@@ -232,9 +236,9 @@ impl JwtProvider {
 
     /// Refreshes the JWT token
     async fn refresh_token(&self, current_token: &str) -> AuthResult<String> {
-        let refresh_endpoint = self.refresh_endpoint
-            .as_ref()
-            .ok_or_else(|| AuthError::TokenRefreshError("No refresh endpoint configured".to_string()))?;
+        let refresh_endpoint = self.refresh_endpoint.as_ref().ok_or_else(|| {
+            AuthError::TokenRefreshError("No refresh endpoint configured".to_string())
+        })?;
 
         debug!("Refreshing JWT token");
 
@@ -243,7 +247,8 @@ impl JwtProvider {
             "grant_type": "refresh_token"
         });
 
-        let response = self.refresh_client
+        let response = self
+            .refresh_client
             .post(refresh_endpoint)
             .header("Content-Type", "application/json")
             .json(&refresh_payload)
@@ -255,16 +260,19 @@ impl JwtProvider {
             let new_token = refresh_response
                 .get("access_token")
                 .and_then(|t| t.as_str())
-                .ok_or_else(|| AuthError::TokenRefreshError("No access_token in response".to_string()))?;
+                .ok_or_else(|| {
+                    AuthError::TokenRefreshError("No access_token in response".to_string())
+                })?;
 
             info!("JWT token refreshed successfully");
             Ok(new_token.to_string())
         } else {
             let status = response.status();
             let error_text = response.text().await.unwrap_or_default();
-            Err(AuthError::TokenRefreshError(
-                format!("HTTP {}: {}", status, error_text)
-            ))
+            Err(AuthError::TokenRefreshError(format!(
+                "HTTP {}: {}",
+                status, error_text
+            )))
         }
     }
 }
@@ -430,9 +438,11 @@ impl StsCredentialProvider {
         // This is a simplified implementation
         // In production, use proper AWS Signature Version 4 implementation
 
-        format!("AWS4-HMAC-SHA256 Credential={}/{}/us-east-1/kinesis/aws4_request",
-                credentials.access_key_id,
-                chrono::Utc::now().format("%Y%m%d"))
+        format!(
+            "AWS4-HMAC-SHA256 Credential={}/{}/us-east-1/kinesis/aws4_request",
+            credentials.access_key_id,
+            chrono::Utc::now().format("%Y%m%d")
+        )
     }
 }
 
@@ -493,19 +503,18 @@ impl AuthManager {
     /// Creates a new authentication manager
     pub fn new(auth_mode: &AuthMode) -> AuthResult<Self> {
         let provider: Box<dyn AuthProvider> = match auth_mode {
-            AuthMode::ApiKey { key } => {
-                Box::new(ApiKeyProvider::new(key.clone()))
-            }
-            AuthMode::JwtToken { token } => {
-                Box::new(JwtProvider::new(token.clone()))
-            }
-            AuthMode::StsCredentials { access_key_id, secret_access_key, region, .. } => {
-                Box::new(StsCredentialProvider::new(
-                    access_key_id.clone(),
-                    secret_access_key.clone(),
-                    region.clone(),
-                ))
-            }
+            AuthMode::ApiKey { key } => Box::new(ApiKeyProvider::new(key.clone())),
+            AuthMode::JwtToken { token } => Box::new(JwtProvider::new(token.clone())),
+            AuthMode::StsCredentials {
+                access_key_id,
+                secret_access_key,
+                region,
+                ..
+            } => Box::new(StsCredentialProvider::new(
+                access_key_id.clone(),
+                secret_access_key.clone(),
+                region.clone(),
+            )),
         };
 
         Ok(Self { provider })
@@ -528,7 +537,10 @@ impl AuthManager {
         role_arn: impl Into<String>,
     ) -> AuthResult<Self> {
         let provider = Box::new(StsCredentialProvider::with_role_arn(
-            access_key_id, secret_access_key, region, role_arn
+            access_key_id,
+            secret_access_key,
+            region,
+            role_arn,
         ));
         Ok(Self { provider })
     }
@@ -623,7 +635,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_auth_manager_api_key() {
-        let auth_mode = AuthMode::ApiKey { key: "test_key".to_string() };
+        let auth_mode = AuthMode::ApiKey {
+            key: "test_key".to_string(),
+        };
         let manager = AuthManager::new(&auth_mode).unwrap();
 
         let auth_header = manager.get_auth_header().await.unwrap();
@@ -632,7 +646,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_auth_manager_jwt() {
-        let auth_mode = AuthMode::JwtToken { token: "jwt_token".to_string() };
+        let auth_mode = AuthMode::JwtToken {
+            token: "jwt_token".to_string(),
+        };
         let manager = AuthManager::new(&auth_mode).unwrap();
 
         let auth_header = manager.get_auth_header().await.unwrap();

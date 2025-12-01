@@ -18,15 +18,13 @@ impl BasicEnhancedTelemetryClient {
     pub fn new(config: EnhancedTelemetryConfig) -> Result<Self> {
         // Convert enhanced config to legacy config for compatibility
         let legacy_config = match &config.auth {
-            crate::config::AuthMode::ApiKey { key } => {
-                TelemetryConfig::new(key.clone())
-                    .with_endpoint(config.endpoint_url.clone())
-                    .with_timeout(config.timeout)
-                    .with_retry_attempts(config.retry_attempts)
-                    .with_batch_size(config.batch_size)
-                    .with_flush_interval(config.flush_interval)
-                    .with_enabled(config.enabled)
-            }
+            crate::config::AuthMode::ApiKey { key } => TelemetryConfig::new(key.clone())
+                .with_endpoint(config.endpoint_url.clone())
+                .with_timeout(config.timeout)
+                .with_retry_attempts(config.retry_attempts)
+                .with_batch_size(config.batch_size)
+                .with_flush_interval(config.flush_interval)
+                .with_enabled(config.enabled),
             _ => {
                 // For non-API key auth, use a placeholder key
                 TelemetryConfig::new("placeholder_key".to_string())
@@ -143,8 +141,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_track_event() {
-        let config = EnhancedTelemetryConfig::with_api_key("bca_test_key")
-            .with_enabled(false);
+        let config = EnhancedTelemetryConfig::with_api_key("bca_test_key").with_enabled(false);
 
         let client = BasicEnhancedTelemetryClient::new(config).unwrap();
 
@@ -158,8 +155,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_flush() {
-        let config = EnhancedTelemetryConfig::with_api_key("bca_test_key")
-            .with_enabled(false);
+        let config = EnhancedTelemetryConfig::with_api_key("bca_test_key").with_enabled(false);
 
         let client = BasicEnhancedTelemetryClient::new(config).unwrap();
 

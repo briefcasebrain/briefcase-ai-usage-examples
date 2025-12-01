@@ -93,20 +93,30 @@ impl RestApiClient {
         // Add experiment context if present
         if !self.config.experiments.is_empty() {
             if let Some(obj) = payload.as_object_mut() {
-                obj.insert("experiments".to_string(), serde_json::to_value(&self.config.experiments)?);
+                obj.insert(
+                    "experiments".to_string(),
+                    serde_json::to_value(&self.config.experiments)?,
+                );
             }
         }
 
         // Add timestamp
         if let Some(obj) = payload.as_object_mut() {
-            obj.insert("timestamp".to_string(), serde_json::to_value(chrono::Utc::now())?);
+            obj.insert(
+                "timestamp".to_string(),
+                serde_json::to_value(chrono::Utc::now())?,
+            );
         }
 
         Ok(payload)
     }
 
     /// Makes an HTTP request with retry logic
-    async fn make_request(&self, endpoint: &str, payload: &serde_json::Value) -> ProtocolResult<()> {
+    async fn make_request(
+        &self,
+        endpoint: &str,
+        payload: &serde_json::Value,
+    ) -> ProtocolResult<()> {
         let auth_header = self.get_auth_header()?;
 
         for attempt in 1..=self.config.retry_attempts {
@@ -155,16 +165,20 @@ impl RestApiClient {
                             } else {
                                 return Err(ProtocolError::ProtocolSpecific {
                                     protocol: EndpointType::RestApi,
-                                    message: format!("Rate limited. Retry after {} seconds", retry_after_value),
+                                    message: format!(
+                                        "Rate limited. Retry after {} seconds",
+                                        retry_after_value
+                                    ),
                                 });
                             }
                         }
 
                         // Handle authentication errors
                         if status == 401 {
-                            return Err(ProtocolError::AuthenticationError(
-                                format!("Authentication failed: {}", error_body)
-                            ));
+                            return Err(ProtocolError::AuthenticationError(format!(
+                                "Authentication failed: {}",
+                                error_body
+                            )));
                         }
 
                         if attempt < self.config.retry_attempts {
@@ -217,7 +231,8 @@ impl ProtocolClient for RestApiClient {
         let rest_payload = self.format_rest_payload(payload_data)?;
 
         // Make the request
-        self.make_request(&self.config.endpoint_url, &rest_payload).await?;
+        self.make_request(&self.config.endpoint_url, &rest_payload)
+            .await?;
 
         info!("Telemetry data sent successfully via REST API");
         Ok(())
@@ -227,13 +242,17 @@ impl ProtocolClient for RestApiClient {
         debug!("Sending agent run data via REST API protocol");
 
         // Construct agent run endpoint
-        let agent_run_endpoint = format!("{}/agent-runs", self.config.endpoint_url.trim_end_matches('/'));
+        let agent_run_endpoint = format!(
+            "{}/agent-runs",
+            self.config.endpoint_url.trim_end_matches('/')
+        );
 
         // Format as REST payload
         let rest_payload = self.format_rest_payload(data.clone())?;
 
         // Make the request
-        self.make_request(&agent_run_endpoint, &rest_payload).await?;
+        self.make_request(&agent_run_endpoint, &rest_payload)
+            .await?;
 
         info!("Agent run data sent successfully via REST API");
         Ok(())
@@ -262,7 +281,10 @@ impl ProtocolClient for RestApiClient {
         // Make the request
         self.make_request(&batch_endpoint, &rest_payload).await?;
 
-        info!("Batch data ({} records) sent successfully via REST API", records.len());
+        info!(
+            "Batch data ({} records) sent successfully via REST API",
+            records.len()
+        );
         Ok(())
     }
 
@@ -305,7 +327,9 @@ impl ProtocolClient for RestApiClient {
         }
 
         // Validate URL format
-        if !config.endpoint_url.starts_with("http://") && !config.endpoint_url.starts_with("https://") {
+        if !config.endpoint_url.starts_with("http://")
+            && !config.endpoint_url.starts_with("https://")
+        {
             return Err(ProtocolError::ConfigurationError(
                 "Endpoint URL must be a valid HTTP/HTTPS URL".to_string(),
             ));
@@ -386,14 +410,20 @@ mod tests {
 
     fn create_test_config_jwt() -> EnhancedTelemetryConfig {
         EnhancedTelemetryConfig::with_jwt_token("jwt_token_123")
-            .with_endpoint(EndpointType::RestApi, "https://api.example.com/v1/telemetry")
+            .with_endpoint(
+                EndpointType::RestApi,
+                "https://api.example.com/v1/telemetry",
+            )
             .with_timeout(Duration::from_secs(5))
             .with_retry_attempts(2)
     }
 
     fn create_test_config_api_key() -> EnhancedTelemetryConfig {
         EnhancedTelemetryConfig::with_api_key("bca_test_key")
-            .with_endpoint(EndpointType::RestApi, "https://api.example.com/v1/telemetry")
+            .with_endpoint(
+                EndpointType::RestApi,
+                "https://api.example.com/v1/telemetry",
+            )
             .with_timeout(Duration::from_secs(5))
             .with_retry_attempts(2)
     }
@@ -414,23 +444,34 @@ mod tests {
 
     #[test]
     fn test_rest_client_invalid_endpoint_type() {
-        let config = EnhancedTelemetryConfig::with_jwt_token("token")
-            .with_endpoint(EndpointType::TrpcLegacy, "https://api.example.com/api/trpc/telemetry");
+        let config = EnhancedTelemetryConfig::with_jwt_token("token").with_endpoint(
+            EndpointType::TrpcLegacy,
+            "https://api.example.com/api/trpc/telemetry",
+        );
 
         let client = RestApiClient::new(&config);
         assert!(client.is_err());
-        assert!(matches!(client.unwrap_err(), ProtocolError::ConfigurationError(_)));
+        assert!(matches!(
+            client.unwrap_err(),
+            ProtocolError::ConfigurationError(_)
+        ));
     }
 
     #[test]
     fn test_rest_client_invalid_auth_sts() {
-        let config = EnhancedTelemetryConfig::with_sts_credentials(
-            "access", "secret", "region", "stream"
-        ).with_endpoint(EndpointType::RestApi, "https://api.example.com/v1/telemetry");
+        let config =
+            EnhancedTelemetryConfig::with_sts_credentials("access", "secret", "region", "stream")
+                .with_endpoint(
+                    EndpointType::RestApi,
+                    "https://api.example.com/v1/telemetry",
+                );
 
         let client = RestApiClient::new(&config);
         assert!(client.is_err());
-        assert!(matches!(client.unwrap_err(), ProtocolError::ConfigurationError(_)));
+        assert!(matches!(
+            client.unwrap_err(),
+            ProtocolError::ConfigurationError(_)
+        ));
     }
 
     #[test]
@@ -454,7 +495,9 @@ mod tests {
     #[test]
     fn test_get_auth_header_api_key_bearer() {
         let config = EnhancedTelemetryConfig {
-            auth: AuthMode::ApiKey { key: "bearer_token".to_string() },
+            auth: AuthMode::ApiKey {
+                key: "bearer_token".to_string(),
+            },
             endpoint_type: EndpointType::RestApi,
             endpoint_url: "https://api.example.com/v1/telemetry".to_string(),
             ..create_test_config_jwt()
@@ -555,7 +598,9 @@ mod tests {
         let client = RestApiClient::new(&config).unwrap();
 
         let invalid_config = EnhancedTelemetryConfig {
-            auth: AuthMode::JwtToken { token: "".to_string() },
+            auth: AuthMode::JwtToken {
+                token: "".to_string(),
+            },
             ..config
         };
 

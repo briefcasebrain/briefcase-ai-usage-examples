@@ -58,7 +58,9 @@ impl AuthMode {
 
     /// Creates a JWT token authentication mode
     pub fn jwt_token(token: impl Into<String>) -> Self {
-        Self::JwtToken { token: token.into() }
+        Self::JwtToken {
+            token: token.into(),
+        }
     }
 
     /// Creates STS credentials authentication mode
@@ -228,7 +230,10 @@ impl EnhancedTelemetryConfig {
             endpoint_url: "https://telemetry.briefcasebrain.com/api/v1/telemetry".to_string(),
             fallback_endpoints: vec![
                 // Fallback to legacy tRPC endpoint for backward compatibility
-                (EndpointType::TrpcLegacy, "https://telemetry.briefcasebrain.com/api/trpc/ingest.telemetry".to_string()),
+                (
+                    EndpointType::TrpcLegacy,
+                    "https://telemetry.briefcasebrain.com/api/trpc/ingest.telemetry".to_string(),
+                ),
             ],
             organization: None,
             experiments: vec![],
@@ -274,7 +279,7 @@ impl EnhancedTelemetryConfig {
             serde_json::json!({
                 "stream_name": stream_name.into(),
                 "partition_key_field": "session_id"
-            })
+            }),
         );
 
         Self {
@@ -314,13 +319,21 @@ impl EnhancedTelemetryConfig {
     }
 
     /// Adds a fallback endpoint
-    pub fn with_fallback_endpoint(mut self, endpoint_type: EndpointType, url: impl Into<String>) -> Self {
+    pub fn with_fallback_endpoint(
+        mut self,
+        endpoint_type: EndpointType,
+        url: impl Into<String>,
+    ) -> Self {
         self.fallback_endpoints.push((endpoint_type, url.into()));
         self
     }
 
     /// Sets protocol-specific configuration
-    pub fn with_protocol_config(mut self, endpoint_type: EndpointType, config: serde_json::Value) -> Self {
+    pub fn with_protocol_config(
+        mut self,
+        endpoint_type: EndpointType,
+        config: serde_json::Value,
+    ) -> Self {
         self.protocol_configs.insert(endpoint_type, config);
         self
     }
@@ -447,7 +460,10 @@ mod tests {
 
         assert!(matches!(config.auth, AuthMode::ApiKey { .. }));
         assert_eq!(config.endpoint_type, EndpointType::RestApi);
-        assert_eq!(config.endpoint_url, "https://telemetry.briefcasebrain.com/api/v1/telemetry");
+        assert_eq!(
+            config.endpoint_url,
+            "https://telemetry.briefcasebrain.com/api/v1/telemetry"
+        );
         assert!(config.enabled);
         assert_eq!(config.legacy_api_key, Some("bca_test_key".to_string()));
         // Verify fallback endpoint is configured
@@ -470,12 +486,14 @@ mod tests {
             "access_key",
             "secret_key",
             "us-east-1",
-            "telemetry-stream"
+            "telemetry-stream",
         );
 
         assert!(matches!(config.auth, AuthMode::StsCredentials { .. }));
         assert_eq!(config.endpoint_type, EndpointType::KinesisStream);
-        assert!(config.protocol_configs.contains_key(&EndpointType::KinesisStream));
+        assert!(config
+            .protocol_configs
+            .contains_key(&EndpointType::KinesisStream));
     }
 
     #[test]
@@ -489,7 +507,10 @@ mod tests {
         assert_eq!(org_context.agent_group, "ml_agents");
         assert_eq!(org_context.org_name, Some("Test Org".to_string()));
         assert_eq!(org_context.environment, Some("prod".to_string()));
-        assert_eq!(org_context.metadata.get("region"), Some(&"us-west-2".to_string()));
+        assert_eq!(
+            org_context.metadata.get("region"),
+            Some(&"us-west-2".to_string())
+        );
     }
 
     #[test]
@@ -500,9 +521,15 @@ mod tests {
 
         assert_eq!(experiment.experiment_id, "exp_123");
         assert_eq!(experiment.variant, "variant_a");
-        assert_eq!(experiment.experiment_name, Some("Feature Flag Test".to_string()));
+        assert_eq!(
+            experiment.experiment_name,
+            Some("Feature Flag Test".to_string())
+        );
         assert!(experiment.active);
-        assert_eq!(experiment.config.get("feature_enabled"), Some(&serde_json::Value::Bool(true)));
+        assert_eq!(
+            experiment.config.get("feature_enabled"),
+            Some(&serde_json::Value::Bool(true))
+        );
     }
 
     #[test]
@@ -531,7 +558,10 @@ mod tests {
         assert_eq!(enhanced_config.endpoint_type, EndpointType::TrpcLegacy);
         assert_eq!(enhanced_config.endpoint_url, "https://legacy.endpoint.com");
         assert_eq!(enhanced_config.batch_size, 50);
-        assert_eq!(enhanced_config.legacy_api_key, Some("legacy_key".to_string()));
+        assert_eq!(
+            enhanced_config.legacy_api_key,
+            Some("legacy_key".to_string())
+        );
     }
 
     #[test]
@@ -545,9 +575,8 @@ mod tests {
         let sts_auth = AuthMode::sts_credentials("access", "secret", "us-east-1");
         assert!(matches!(sts_auth, AuthMode::StsCredentials { .. }));
 
-        let sts_auth_with_session = AuthMode::sts_credentials_with_session(
-            "access", "secret", "session", "us-west-2"
-        );
+        let sts_auth_with_session =
+            AuthMode::sts_credentials_with_session("access", "secret", "session", "us-west-2");
         if let AuthMode::StsCredentials { session_token, .. } = sts_auth_with_session {
             assert_eq!(session_token, Some("session".to_string()));
         } else {
@@ -582,6 +611,9 @@ mod tests {
         let config = EnhancedTelemetryConfig::with_api_key("test")
             .with_protocol_config(EndpointType::KinesisStream, kinesis_config.clone());
 
-        assert_eq!(config.protocol_configs.get(&EndpointType::KinesisStream), Some(&kinesis_config));
+        assert_eq!(
+            config.protocol_configs.get(&EndpointType::KinesisStream),
+            Some(&kinesis_config)
+        );
     }
 }

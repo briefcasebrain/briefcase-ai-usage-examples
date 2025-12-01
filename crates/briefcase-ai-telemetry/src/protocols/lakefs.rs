@@ -133,7 +133,8 @@ impl LakeFSDirectClient {
             }
             _ => {
                 return Err(ProtocolError::ConfigurationError(
-                    "LakeFS Direct client requires STS credentials or API key authentication".to_string(),
+                    "LakeFS Direct client requires STS credentials or API key authentication"
+                        .to_string(),
                 ));
             }
         };
@@ -146,18 +147,23 @@ impl LakeFSDirectClient {
         }
 
         // Extract LakeFS-specific configuration
-        let lakefs_config = config.protocol_configs
+        let lakefs_config = config
+            .protocol_configs
             .get(&EndpointType::LakefsDirect)
-            .ok_or_else(|| ProtocolError::ConfigurationError(
-                "Missing LakeFS Direct protocol configuration".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                ProtocolError::ConfigurationError(
+                    "Missing LakeFS Direct protocol configuration".to_string(),
+                )
+            })?;
 
         let repository = lakefs_config
             .get("repository")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| ProtocolError::ConfigurationError(
-                "Missing repository in LakeFS configuration".to_string(),
-            ))?
+            .ok_or_else(|| {
+                ProtocolError::ConfigurationError(
+                    "Missing repository in LakeFS configuration".to_string(),
+                )
+            })?
             .to_string();
 
         let branch = lakefs_config
@@ -201,7 +207,11 @@ impl LakeFSDirectClient {
                 let encoded = base64_encode(key);
                 Ok(("Authorization".to_string(), format!("Basic {}", encoded)))
             }
-            AuthMode::StsCredentials { access_key_id, secret_access_key, .. } => {
+            AuthMode::StsCredentials {
+                access_key_id,
+                secret_access_key,
+                ..
+            } => {
                 // For LakeFS with STS credentials, use Basic auth
                 let credentials = format!("{}:{}", access_key_id, secret_access_key);
                 let encoded = base64_encode(&credentials);
@@ -223,21 +233,31 @@ impl LakeFSDirectClient {
         let now = chrono::Utc::now();
         let date_path = now.format("%Y/%m/%d").to_string();
 
-        let session_id = data.get("session")
+        let session_id = data
+            .get("session")
             .and_then(|s| s.get("id"))
             .and_then(|id| id.as_str())
             .unwrap_or("unknown");
 
-        let org_id = self.config.organization
+        let org_id = self
+            .config
+            .organization
             .as_ref()
             .map(|org| org.org_id.as_str())
             .unwrap_or("default");
 
-        format!("{}/{}/{}/session_{}.json", self.base_path, org_id, date_path, session_id)
+        format!(
+            "{}/{}/{}/session_{}.json",
+            self.base_path, org_id, date_path, session_id
+        )
     }
 
     /// Formats data for LakeFS commit
-    fn format_lakefs_commit(&self, data: serde_json::Value, file_path: String) -> ProtocolResult<serde_json::Value> {
+    fn format_lakefs_commit(
+        &self,
+        data: serde_json::Value,
+        file_path: String,
+    ) -> ProtocolResult<serde_json::Value> {
         let commit_metadata = json!({
             "message": format!("Telemetry data from {} at {}",
                 self.config.organization
@@ -261,7 +281,10 @@ impl LakeFSDirectClient {
         // Add experiment context if present
         if !self.config.experiments.is_empty() {
             if let Some(obj) = enhanced_data.as_object_mut() {
-                obj.insert("experiments".to_string(), serde_json::to_value(&self.config.experiments)?);
+                obj.insert(
+                    "experiments".to_string(),
+                    serde_json::to_value(&self.config.experiments)?,
+                );
             }
         }
 
@@ -278,7 +301,11 @@ impl LakeFSDirectClient {
 
     /// Uploads data to LakeFS using the LakeFS API
     async fn upload_to_lakefs(&self, commits: Vec<serde_json::Value>) -> ProtocolResult<()> {
-        debug!("Uploading {} commits to LakeFS repository: {}", commits.len(), self.repository);
+        debug!(
+            "Uploading {} commits to LakeFS repository: {}",
+            commits.len(),
+            self.repository
+        );
 
         let (auth_header_name, auth_header_value) = self.get_auth_header()?;
         let base_url = self.api_base_url();
@@ -286,25 +313,33 @@ impl LakeFSDirectClient {
         let mut uploaded_paths: Vec<String> = Vec::new();
 
         for (i, commit) in commits.iter().enumerate() {
-            let lakefs_metadata = commit.get("lakefs_metadata")
-                .ok_or_else(|| ProtocolError::ConfigurationError(
-                    "Missing lakefs_metadata in commit data".to_string()
-                ))?;
-            let file_path = lakefs_metadata.get("path")
+            let lakefs_metadata = commit.get("lakefs_metadata").ok_or_else(|| {
+                ProtocolError::ConfigurationError(
+                    "Missing lakefs_metadata in commit data".to_string(),
+                )
+            })?;
+            let file_path = lakefs_metadata
+                .get("path")
                 .and_then(|v| v.as_str())
-                .ok_or_else(|| ProtocolError::ConfigurationError(
-                    "Missing path in lakefs_metadata".to_string()
-                ))?;
-            let telemetry_data = commit.get("telemetry_data")
-                .ok_or_else(|| ProtocolError::ConfigurationError(
-                    "Missing telemetry_data in commit data".to_string()
-                ))?;
+                .ok_or_else(|| {
+                    ProtocolError::ConfigurationError("Missing path in lakefs_metadata".to_string())
+                })?;
+            let telemetry_data = commit.get("telemetry_data").ok_or_else(|| {
+                ProtocolError::ConfigurationError(
+                    "Missing telemetry_data in commit data".to_string(),
+                )
+            })?;
 
             // Serialize telemetry data to JSON bytes
             let content = serde_json::to_vec_pretty(telemetry_data)
                 .map_err(ProtocolError::SerializationError)?;
 
-            debug!("Uploading object {}: path={}, size={} bytes", i, file_path, content.len());
+            debug!(
+                "Uploading object {}: path={}, size={} bytes",
+                i,
+                file_path,
+                content.len()
+            );
 
             // Upload object to LakeFS
             // PUT /repositories/{repository}/branches/{branch}/objects?path={path}
@@ -316,7 +351,8 @@ impl LakeFSDirectClient {
                 urlencoding::encode(file_path)
             );
 
-            let response = self.http_client
+            let response = self
+                .http_client
                 .post(&upload_url)
                 .header(&auth_header_name, &auth_header_value)
                 .header("Content-Type", "application/octet-stream")
@@ -328,14 +364,20 @@ impl LakeFSDirectClient {
             if !response.status().is_success() {
                 let status = response.status();
                 let error_text = response.text().await.unwrap_or_default();
-                error!("Failed to upload object to LakeFS: {} - {}", status, error_text);
-                return Err(ProtocolError::ConfigurationError(
-                    format!("LakeFS upload failed with status {}: {}", status, error_text)
-                ));
+                error!(
+                    "Failed to upload object to LakeFS: {} - {}",
+                    status, error_text
+                );
+                return Err(ProtocolError::ConfigurationError(format!(
+                    "LakeFS upload failed with status {}: {}",
+                    status, error_text
+                )));
             }
 
             // Parse response to confirm upload
-            let _upload_response: LakeFSObjectResponse = response.json().await
+            let _upload_response: LakeFSObjectResponse = response
+                .json()
+                .await
                 .map_err(|e| {
                     warn!("Could not parse LakeFS response, continuing: {}", e);
                     e
@@ -349,24 +391,29 @@ impl LakeFSDirectClient {
                 });
 
             uploaded_paths.push(file_path.to_string());
-            info!("Successfully uploaded to LakeFS: {}/{}{}", self.repository, self.branch, file_path);
+            info!(
+                "Successfully uploaded to LakeFS: {}/{}{}",
+                self.repository, self.branch, file_path
+            );
         }
 
         // Create commit if auto_commit is enabled and we uploaded files
         if self.auto_commit && !uploaded_paths.is_empty() {
-            debug!("Auto-commit enabled, creating commit for {} objects", uploaded_paths.len());
+            debug!(
+                "Auto-commit enabled, creating commit for {} objects",
+                uploaded_paths.len()
+            );
 
             let commit_url = format!(
                 "{}/repositories/{}/branches/{}/commits",
-                base_url,
-                self.repository,
-                self.branch
+                base_url, self.repository, self.branch
             );
 
             let commit_message = format!(
                 "Telemetry upload: {} objects from {}",
                 uploaded_paths.len(),
-                self.config.organization
+                self.config
+                    .organization
                     .as_ref()
                     .map(|org| org.agent_group.as_str())
                     .unwrap_or("briefcase-sdk")
@@ -382,7 +429,8 @@ impl LakeFSDirectClient {
                 })),
             };
 
-            let commit_response = self.http_client
+            let commit_response = self
+                .http_client
                 .post(&commit_url)
                 .header(&auth_header_name, &auth_header_value)
                 .header("Content-Type", "application/json")
@@ -394,21 +442,31 @@ impl LakeFSDirectClient {
             if !commit_response.status().is_success() {
                 let status = commit_response.status();
                 let error_text = commit_response.text().await.unwrap_or_default();
-                warn!("Failed to create commit in LakeFS: {} - {}", status, error_text);
+                warn!(
+                    "Failed to create commit in LakeFS: {} - {}",
+                    status, error_text
+                );
                 // Don't fail the whole operation if commit fails, objects are already uploaded
             } else {
-                let commit_info: LakeFSCommitResponse = commit_response.json().await
-                    .unwrap_or(LakeFSCommitResponse {
-                        id: String::new(),
-                        parents: vec![],
-                        committer: String::new(),
-                        message: String::new(),
-                    });
+                let commit_info: LakeFSCommitResponse =
+                    commit_response
+                        .json()
+                        .await
+                        .unwrap_or(LakeFSCommitResponse {
+                            id: String::new(),
+                            parents: vec![],
+                            committer: String::new(),
+                            message: String::new(),
+                        });
                 info!("Created LakeFS commit: {}", commit_info.id);
             }
         }
 
-        info!("Successfully uploaded {} commits to LakeFS repository: {}", commits.len(), self.repository);
+        info!(
+            "Successfully uploaded {} commits to LakeFS repository: {}",
+            commits.len(),
+            self.repository
+        );
         Ok(())
     }
 }
@@ -441,7 +499,10 @@ impl ProtocolClient for LakeFSDirectClient {
         // Add record type for agent runs
         let mut agent_data = data.clone();
         if let Some(obj) = agent_data.as_object_mut() {
-            obj.insert("record_type".to_string(), serde_json::Value::String("agent_run".to_string()));
+            obj.insert(
+                "record_type".to_string(),
+                serde_json::Value::String("agent_run".to_string()),
+            );
         }
 
         // Generate file path
@@ -469,11 +530,21 @@ impl ProtocolClient for LakeFSDirectClient {
         for (i, record) in records.iter().enumerate() {
             let mut batch_record = record.clone();
             if let Some(obj) = batch_record.as_object_mut() {
-                obj.insert("record_type".to_string(), serde_json::Value::String("batch".to_string()));
-                obj.insert("batch_index".to_string(), serde_json::Value::Number(i.into()));
+                obj.insert(
+                    "record_type".to_string(),
+                    serde_json::Value::String("batch".to_string()),
+                );
+                obj.insert(
+                    "batch_index".to_string(),
+                    serde_json::Value::Number(i.into()),
+                );
             }
 
-            let file_path = format!("{}_batch_{}.json", self.generate_file_path(&batch_record), i);
+            let file_path = format!(
+                "{}_batch_{}.json",
+                self.generate_file_path(&batch_record),
+                i
+            );
             let lakefs_commit = self.format_lakefs_commit(batch_record, file_path)?;
             lakefs_commits.push(lakefs_commit);
         }
@@ -481,7 +552,10 @@ impl ProtocolClient for LakeFSDirectClient {
         // Upload batch to LakeFS
         self.upload_to_lakefs(lakefs_commits).await?;
 
-        info!("Batch data ({} records) sent successfully via LakeFS Direct", records.len());
+        info!(
+            "Batch data ({} records) sent successfully via LakeFS Direct",
+            records.len()
+        );
         Ok(())
     }
 
@@ -495,7 +569,12 @@ impl ProtocolClient for LakeFSDirectClient {
 
         // Check authentication mode
         match &config.auth {
-            AuthMode::StsCredentials { access_key_id, secret_access_key, region, .. } => {
+            AuthMode::StsCredentials {
+                access_key_id,
+                secret_access_key,
+                region,
+                ..
+            } => {
                 if access_key_id.is_empty() || secret_access_key.is_empty() || region.is_empty() {
                     return Err(ProtocolError::ConfigurationError(
                         "AWS credentials cannot be empty".to_string(),
@@ -511,7 +590,8 @@ impl ProtocolClient for LakeFSDirectClient {
             }
             _ => {
                 return Err(ProtocolError::ConfigurationError(
-                    "LakeFS Direct client requires STS credentials or API key authentication".to_string(),
+                    "LakeFS Direct client requires STS credentials or API key authentication"
+                        .to_string(),
                 ));
             }
         }
@@ -524,19 +604,24 @@ impl ProtocolClient for LakeFSDirectClient {
         }
 
         // Check for LakeFS-specific configuration
-        let lakefs_config = config.protocol_configs
+        let lakefs_config = config
+            .protocol_configs
             .get(&EndpointType::LakefsDirect)
-            .ok_or_else(|| ProtocolError::ConfigurationError(
-                "Missing LakeFS Direct protocol configuration".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                ProtocolError::ConfigurationError(
+                    "Missing LakeFS Direct protocol configuration".to_string(),
+                )
+            })?;
 
         // Validate repository
         let repository = lakefs_config
             .get("repository")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| ProtocolError::ConfigurationError(
-                "Missing repository in LakeFS configuration".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                ProtocolError::ConfigurationError(
+                    "Missing repository in LakeFS configuration".to_string(),
+                )
+            })?;
 
         if repository.is_empty() {
             return Err(ProtocolError::ConfigurationError(
@@ -566,7 +651,8 @@ impl ProtocolClient for LakeFSDirectClient {
 
         debug!("Checking LakeFS repository at: {}", repo_url);
 
-        let response = self.http_client
+        let response = self
+            .http_client
             .get(&repo_url)
             .header(&auth_header_name, &auth_header_value)
             .send()
@@ -578,29 +664,35 @@ impl ProtocolClient for LakeFSDirectClient {
             let error_text = response.text().await.unwrap_or_default();
 
             if status.as_u16() == 404 {
-                return Err(ProtocolError::ConfigurationError(
-                    format!("LakeFS repository '{}' not found", self.repository)
-                ));
+                return Err(ProtocolError::ConfigurationError(format!(
+                    "LakeFS repository '{}' not found",
+                    self.repository
+                )));
             } else if status.as_u16() == 401 || status.as_u16() == 403 {
-                return Err(ProtocolError::AuthenticationError(
-                    format!("Authentication failed for LakeFS repository '{}': {}", self.repository, error_text)
-                ));
+                return Err(ProtocolError::AuthenticationError(format!(
+                    "Authentication failed for LakeFS repository '{}': {}",
+                    self.repository, error_text
+                )));
             } else {
-                return Err(ProtocolError::ConfigurationError(
-                    format!("LakeFS health check failed with status {}: {}", status, error_text)
-                ));
+                return Err(ProtocolError::ConfigurationError(format!(
+                    "LakeFS health check failed with status {}: {}",
+                    status, error_text
+                )));
             }
         }
 
         // Parse repository info to verify it's a valid response
-        let _repo_info: LakeFSRepositoryInfo = response.json().await
-            .map_err(|e| ProtocolError::ConfigurationError(
-                format!("Invalid repository info response: {}", e)
-            ))?;
+        let _repo_info: LakeFSRepositoryInfo = response.json().await.map_err(|e| {
+            ProtocolError::ConfigurationError(format!("Invalid repository info response: {}", e))
+        })?;
 
         // Check branch exists
-        let branch_url = format!("{}/repositories/{}/branches/{}", base_url, self.repository, self.branch);
-        let branch_response = self.http_client
+        let branch_url = format!(
+            "{}/repositories/{}/branches/{}",
+            base_url, self.repository, self.branch
+        );
+        let branch_response = self
+            .http_client
             .get(&branch_url)
             .header(&auth_header_name, &auth_header_value)
             .send()
@@ -610,12 +702,18 @@ impl ProtocolClient for LakeFSDirectClient {
         if !branch_response.status().is_success() {
             let status = branch_response.status();
             if status.as_u16() == 404 {
-                warn!("Branch '{}' not found in repository '{}', will be created on first commit", self.branch, self.repository);
+                warn!(
+                    "Branch '{}' not found in repository '{}', will be created on first commit",
+                    self.branch, self.repository
+                );
                 // Don't fail - branch might be created on first write
             }
         }
 
-        info!("LakeFS Direct health check passed - repository '{}' accessible", self.repository);
+        info!(
+            "LakeFS Direct health check passed - repository '{}' accessible",
+            self.repository
+        );
         Ok(())
     }
 
@@ -623,8 +721,10 @@ impl ProtocolClient for LakeFSDirectClient {
         debug!("Shutting down LakeFS Direct client");
 
         // Log shutdown for tracing purposes
-        info!("LakeFS Direct client shutting down - repository: {}, branch: {}",
-            self.repository, self.branch);
+        info!(
+            "LakeFS Direct client shutting down - repository: {}, branch: {}",
+            self.repository, self.branch
+        );
 
         // HTTP client connections are managed automatically by reqwest
         // No explicit cleanup needed for connection pool
@@ -644,7 +744,7 @@ mod tests {
             "AKIA123456789",
             "secret_access_key",
             "us-east-1",
-            "stream" // Not used for LakeFS
+            "stream", // Not used for LakeFS
         );
 
         // Override endpoint type and add LakeFS config
@@ -657,7 +757,7 @@ mod tests {
                 "branch": "main",
                 "base_path": "/telemetry",
                 "auto_commit": true
-            })
+            }),
         );
 
         config
@@ -674,7 +774,7 @@ mod tests {
                 "branch": "main",
                 "base_path": "/telemetry",
                 "auto_commit": false
-            })
+            }),
         );
 
         config
@@ -701,7 +801,10 @@ mod tests {
 
         let client = LakeFSDirectClient::new(&config);
         assert!(client.is_err());
-        assert!(matches!(client.unwrap_err(), ProtocolError::ConfigurationError(_)));
+        assert!(matches!(
+            client.unwrap_err(),
+            ProtocolError::ConfigurationError(_)
+        ));
     }
 
     #[test]
@@ -711,7 +814,10 @@ mod tests {
 
         let client = LakeFSDirectClient::new(&config);
         assert!(client.is_err());
-        assert!(matches!(client.unwrap_err(), ProtocolError::ConfigurationError(_)));
+        assert!(matches!(
+            client.unwrap_err(),
+            ProtocolError::ConfigurationError(_)
+        ));
     }
 
     #[test]
@@ -753,7 +859,10 @@ mod tests {
         let metadata = formatted.get("lakefs_metadata").unwrap();
         assert_eq!(metadata.get("repository").unwrap(), "briefcase-telemetry");
         assert_eq!(metadata.get("branch").unwrap(), "main");
-        assert_eq!(metadata.get("path").unwrap(), "/telemetry/test/session_123.json");
+        assert_eq!(
+            metadata.get("path").unwrap(),
+            "/telemetry/test/session_123.json"
+        );
 
         let data = formatted.get("telemetry_data").unwrap();
         assert_eq!(data.get("test").unwrap(), "data");

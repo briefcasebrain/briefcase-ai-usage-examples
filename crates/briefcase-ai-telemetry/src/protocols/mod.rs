@@ -10,10 +10,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use thiserror::Error;
 
-pub mod trpc;
-pub mod rest;
 pub mod kinesis;
 pub mod lakefs;
+pub mod rest;
+pub mod trpc;
 
 /// Error types for protocol operations
 #[derive(Debug, Error)]
@@ -25,7 +25,10 @@ pub enum ProtocolError {
     NetworkError(#[from] reqwest::Error),
 
     #[error("Protocol-specific error: {protocol:?} - {message}")]
-    ProtocolSpecific { protocol: EndpointType, message: String },
+    ProtocolSpecific {
+        protocol: EndpointType,
+        message: String,
+    },
 
     #[error("Configuration error: {0}")]
     ConfigurationError(String),
@@ -78,13 +81,25 @@ pub trait ProtocolClient: Send + Sync {
 /// Trait for data format transformation between protocols
 pub trait DataTransformer: Send + Sync {
     /// Transforms telemetry data to protocol-specific format
-    fn transform_telemetry_data(&self, data: &TelemetryData, target_protocol: EndpointType) -> ProtocolResult<Vec<u8>>;
+    fn transform_telemetry_data(
+        &self,
+        data: &TelemetryData,
+        target_protocol: EndpointType,
+    ) -> ProtocolResult<Vec<u8>>;
 
     /// Transforms agent run data to protocol-specific format
-    fn transform_agent_run_data(&self, data: &serde_json::Value, target_protocol: EndpointType) -> ProtocolResult<Vec<u8>>;
+    fn transform_agent_run_data(
+        &self,
+        data: &serde_json::Value,
+        target_protocol: EndpointType,
+    ) -> ProtocolResult<Vec<u8>>;
 
     /// Transforms batch data to protocol-specific format
-    fn transform_batch_data(&self, records: &[serde_json::Value], target_protocol: EndpointType) -> ProtocolResult<Vec<u8>>;
+    fn transform_batch_data(
+        &self,
+        records: &[serde_json::Value],
+        target_protocol: EndpointType,
+    ) -> ProtocolResult<Vec<u8>>;
 }
 
 /// Circuit breaker state for resilience
@@ -169,23 +184,29 @@ impl CircuitBreaker {
             CircuitState::Open => 1,
             CircuitState::HalfOpen => 2,
         };
-        self.state.store(state_value, std::sync::atomic::Ordering::Relaxed);
+        self.state
+            .store(state_value, std::sync::atomic::Ordering::Relaxed);
     }
 
     fn on_success(&self) {
-        self.failure_count.store(0, std::sync::atomic::Ordering::Relaxed);
+        self.failure_count
+            .store(0, std::sync::atomic::Ordering::Relaxed);
         self.set_state(CircuitState::Closed);
     }
 
     fn on_failure(&self) {
-        let count = self.failure_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed) + 1;
+        let count = self
+            .failure_count
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+            + 1;
 
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs();
 
-        self.last_failure.store(now, std::sync::atomic::Ordering::Relaxed);
+        self.last_failure
+            .store(now, std::sync::atomic::Ordering::Relaxed);
 
         if count >= self.failure_threshold {
             self.set_state(CircuitState::Open);
@@ -198,7 +219,9 @@ pub struct ProtocolClientFactory;
 
 impl ProtocolClientFactory {
     /// Creates a protocol client based on the configuration
-    pub fn create_client(config: &EnhancedTelemetryConfig) -> ProtocolResult<Box<dyn ProtocolClient>> {
+    pub fn create_client(
+        config: &EnhancedTelemetryConfig,
+    ) -> ProtocolResult<Box<dyn ProtocolClient>> {
         match config.endpoint_type {
             EndpointType::TrpcLegacy => {
                 let client = trpc::TrpcLegacyClient::new(config)?;
@@ -220,7 +243,9 @@ impl ProtocolClientFactory {
     }
 
     /// Creates fallback clients for redundancy
-    pub fn create_fallback_clients(config: &EnhancedTelemetryConfig) -> ProtocolResult<Vec<Box<dyn ProtocolClient>>> {
+    pub fn create_fallback_clients(
+        config: &EnhancedTelemetryConfig,
+    ) -> ProtocolResult<Vec<Box<dyn ProtocolClient>>> {
         let mut clients = Vec::new();
 
         for (endpoint_type, _url) in &config.fallback_endpoints {
@@ -255,7 +280,7 @@ impl MultiProtocolClient {
         let fallback_clients = ProtocolClientFactory::create_fallback_clients(config)?;
 
         let circuit_breaker = Arc::new(CircuitBreaker::new(
-            5, // 5 failures before opening
+            5,                                  // 5 failures before opening
             std::time::Duration::from_secs(60), // 1 minute timeout
         ));
 
@@ -270,12 +295,15 @@ impl MultiProtocolClient {
     /// Sends telemetry data with fallback support
     pub async fn send_telemetry(&self, data: &TelemetryData) -> ProtocolResult<()> {
         // Transform data for primary protocol
-        let transformed = self.transformer.transform_telemetry_data(data, self.primary_client.protocol_type())?;
+        let transformed = self
+            .transformer
+            .transform_telemetry_data(data, self.primary_client.protocol_type())?;
 
         // Try primary client with circuit breaker
-        let result = self.circuit_breaker.call(async {
-            self.primary_client.send_telemetry(&transformed).await
-        }).await;
+        let result = self
+            .circuit_breaker
+            .call(async { self.primary_client.send_telemetry(&transformed).await })
+            .await;
 
         match result {
             Ok(_) => return Ok(()),
@@ -284,9 +312,14 @@ impl MultiProtocolClient {
 
                 // Try fallback clients
                 for fallback_client in &self.fallback_clients {
-                    let fallback_data = self.transformer.transform_telemetry_data(data, fallback_client.protocol_type())?;
+                    let fallback_data = self
+                        .transformer
+                        .transform_telemetry_data(data, fallback_client.protocol_type())?;
                     if fallback_client.send_telemetry(&fallback_data).await.is_ok() {
-                        tracing::info!("Fallback client {} succeeded", fallback_client.protocol_type().to_string());
+                        tracing::info!(
+                            "Fallback client {} succeeded",
+                            fallback_client.protocol_type().to_string()
+                        );
                         return Ok(());
                     }
                 }
@@ -299,12 +332,15 @@ impl MultiProtocolClient {
     /// Sends agent run data with fallback support
     pub async fn send_agent_run(&self, data: &serde_json::Value) -> ProtocolResult<()> {
         // Transform data for primary protocol
-        let _transformed = self.transformer.transform_agent_run_data(data, self.primary_client.protocol_type())?;
+        let _transformed = self
+            .transformer
+            .transform_agent_run_data(data, self.primary_client.protocol_type())?;
 
         // Try primary client with circuit breaker
-        let result = self.circuit_breaker.call(async {
-            self.primary_client.send_agent_run(data).await
-        }).await;
+        let result = self
+            .circuit_breaker
+            .call(async { self.primary_client.send_agent_run(data).await })
+            .await;
 
         match result {
             Ok(_) => return Ok(()),
@@ -314,7 +350,10 @@ impl MultiProtocolClient {
                 // Try fallback clients
                 for fallback_client in &self.fallback_clients {
                     if fallback_client.send_agent_run(data).await.is_ok() {
-                        tracing::info!("Fallback client {} succeeded for agent run", fallback_client.protocol_type().to_string());
+                        tracing::info!(
+                            "Fallback client {} succeeded for agent run",
+                            fallback_client.protocol_type().to_string()
+                        );
                         return Ok(());
                     }
                 }
@@ -327,12 +366,15 @@ impl MultiProtocolClient {
     /// Sends batch data with fallback support
     pub async fn send_batch(&self, records: &[serde_json::Value]) -> ProtocolResult<()> {
         // Transform data for primary protocol
-        let _transformed = self.transformer.transform_batch_data(records, self.primary_client.protocol_type())?;
+        let _transformed = self
+            .transformer
+            .transform_batch_data(records, self.primary_client.protocol_type())?;
 
         // Try primary client with circuit breaker
-        let result = self.circuit_breaker.call(async {
-            self.primary_client.send_batch(records).await
-        }).await;
+        let result = self
+            .circuit_breaker
+            .call(async { self.primary_client.send_batch(records).await })
+            .await;
 
         match result {
             Ok(_) => return Ok(()),
@@ -342,7 +384,10 @@ impl MultiProtocolClient {
                 // Try fallback clients
                 for fallback_client in &self.fallback_clients {
                     if fallback_client.send_batch(records).await.is_ok() {
-                        tracing::info!("Fallback client {} succeeded for batch", fallback_client.protocol_type().to_string());
+                        tracing::info!(
+                            "Fallback client {} succeeded for batch",
+                            fallback_client.protocol_type().to_string()
+                        );
                         return Ok(());
                     }
                 }
@@ -434,7 +479,9 @@ mod tests {
             protocol: EndpointType::RestApi,
             message: "HTTP 500".to_string(),
         };
-        assert!(protocol_error.to_string().contains("Protocol-specific error"));
+        assert!(protocol_error
+            .to_string()
+            .contains("Protocol-specific error"));
     }
 
     #[test]

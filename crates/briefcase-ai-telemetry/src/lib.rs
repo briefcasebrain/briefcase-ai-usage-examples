@@ -36,22 +36,14 @@ pub use event::{Event, EventBuilder, EventLevel, EventMetadata};
 pub use telemetry::TelemetryData;
 
 // New exports for enhanced functionality
-pub use auth::{AuthManager, AuthError};
+pub use auth::{AuthError, AuthManager};
 pub use config::{
-    EnhancedTelemetryConfig,
-    EndpointType,
-    AuthMode,
-    OrganizationContext,
-    ExperimentContext
+    AuthMode, EndpointType, EnhancedTelemetryConfig, ExperimentContext, OrganizationContext,
 };
 pub use enhanced_client_basic::BasicEnhancedTelemetryClient;
-pub use experiment::{ExperimentManager, ExperimentManagerFactory, ExperimentError};
+pub use experiment::{ExperimentError, ExperimentManager, ExperimentManagerFactory};
 pub use protocols::{
-    ProtocolClient,
-    ProtocolError,
-    ProtocolResult,
-    MultiProtocolClient,
-    ProtocolClientFactory
+    MultiProtocolClient, ProtocolClient, ProtocolClientFactory, ProtocolError, ProtocolResult,
 };
 pub use transformer::DefaultDataTransformer;
 
