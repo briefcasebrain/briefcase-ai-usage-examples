@@ -125,7 +125,7 @@ The SDK is built with a Rust core and provides bindings for multiple languages:
 └─────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────┐
 │              Briefcase AI API               │
-│         https://api.briefcase.ai            │
+│       https://api.briefcasebrain.com        │
 └─────────────────────────────────────────────┘
 ```
 
@@ -140,7 +140,7 @@ The SDK is built with a Rust core and provides bindings for multiple languages:
 - **Enterprise Support**: Custom integration assistance
 - **Consulting**: Architecture review and optimization
 - **Training**: Team workshops and best practices
-- **Contact**: [support@briefcase.ai](mailto:support@briefcase.ai)
+- **Contact**: [support@briefcasebrain.com](mailto:support@briefcasebrain.com)
 
 ## Contributing
 

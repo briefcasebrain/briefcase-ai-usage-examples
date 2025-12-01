@@ -121,7 +121,7 @@ name = "briefcase-ai-telemetry"
 dynamic = ["version"]
 description = "AI telemetry SDK for Python"
 authors = [
-    {name = "Briefcase AI", email = "sdk@briefcase.ai"},
+    {name = "Briefcase AI", email = "sdk@briefcasebrain.com"},
 ]
 license = {text = "MIT"}
 readme = "README.md"
@@ -250,10 +250,10 @@ npm run build:types
 name = "briefcase-ai-telemetry"
 version = "0.1.0"
 edition = "2021"
-authors = ["Briefcase AI <sdk@briefcase.ai>"]
+authors = ["Briefcase AI <sdk@briefcasebrain.com>"]
 license = "MIT"
 description = "AI telemetry and monitoring SDK"
-homepage = "https://briefcase.ai"
+homepage = "https://briefcasebrain.com"
 repository = "https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk"
 documentation = "https://docs.rs/briefcase-ai-telemetry"
 readme = "README.md"
@@ -504,7 +504,7 @@ export HTTPS_PROXY=http://proxy:8080
 ### Support
 For publishing issues:
 - **Technical**: [GitHub Issues](https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk/issues)
-- **Security**: [security@briefcase.ai](mailto:security@briefcase.ai)
+- **Security**: [security@briefcasebrain.com](mailto:security@briefcasebrain.com)
 - **Registry support**: Contact individual registry support teams
 
 ---

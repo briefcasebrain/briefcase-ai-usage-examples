@@ -230,4 +230,4 @@ instrument = bt.create_agent_instrument(123, client)
 
 ---
 
-Built with ❤️ by the [Briefcase AI](https://briefcase.ai) team.
+Built with ❤️ by the [Briefcase AI](https://briefcasebrain.com) team.

@@ -119,7 +119,7 @@ pnpm add briefcase-ai-telemetry
 cargo install briefcase-ai-telemetry --features cli
 
 # Download pre-built binary (Linux/macOS/Windows)
-curl -sSL https://releases.briefcase.ai/install.sh | sh
+curl -sSL https://releases.briefcasebrain.com/install.sh | sh
 
 # Using Homebrew (macOS/Linux)
 brew install briefcase-ai/tap/briefcase-ai-telemetry
@@ -128,11 +128,11 @@ brew install briefcase-ai/tap/briefcase-ai-telemetry
 #### Platform-specific Packages
 ```bash
 # Ubuntu/Debian
-wget https://releases.briefcase.ai/briefcase-ai-telemetry_0.1.0_amd64.deb
+wget https://releases.briefcasebrain.com/briefcase-ai-telemetry_0.1.0_amd64.deb
 sudo dpkg -i briefcase-ai-telemetry_0.1.0_amd64.deb
 
 # CentOS/RHEL/Fedora
-wget https://releases.briefcase.ai/briefcase-ai-telemetry_0.1.0_x86_64.rpm
+wget https://releases.briefcasebrain.com/briefcase-ai-telemetry_0.1.0_x86_64.rpm
 sudo rpm -i briefcase-ai-telemetry_0.1.0_x86_64.rpm
 
 # Arch Linux (AUR)
@@ -244,8 +244,8 @@ export NO_PROXY="localhost,127.0.0.1,.local"
 
 #### Firewall Configuration
 Ensure your firewall allows outbound HTTPS connections to:
-- `api.briefcase.ai:443`
-- `telemetry.briefcase.ai:443`
+- `api.briefcasebrain.com:443`
+- `telemetry.briefcasebrain.com:443`
 
 ## Troubleshooting
 
@@ -341,7 +341,7 @@ printenv | grep BRIEFCASE
 
 If you encounter installation issues:
 
-1. **Check our FAQ**: [Common installation problems](https://docs.briefcase.ai/faq)
+1. **Check our FAQ**: [Common installation problems](https://docs.briefcasebrain.com/faq)
 2. **Search existing issues**: [GitHub Issues](https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk/issues)
 3. **Create a new issue**: Include your OS, Python/Node/Rust version, and error messages
 4. **Join our community**: [Discord server](https://discord.gg/briefcase-ai) for real-time help

@@ -1,48 +1,69 @@
-name: Build and Publish to Private Registry
+name: Build and Publish to PyPI
 
 on:
   release:
     types: [published]
   workflow_dispatch:  # Allow manual triggering
+    inputs:
+      publish_to_pypi:
+        description: 'Publish to PyPI'
+        required: true
+        default: 'false'
+        type: boolean
 
 permissions:
   contents: read
-  packages: write  # For GitHub Packages
+  packages: write
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        target: [x86_64-unknown-linux-gnu, x86_64-apple-darwin, aarch64-apple-darwin, x86_64-pc-windows-msvc]
         include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest
-          - target: aarch64-apple-darwin
-            os: macos-latest
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            python: '3.11'
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            python: '3.11'
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            python: '3.11'
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            python: '3.11'
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            python: '3.11'
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: ${{ matrix.python }}
 
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
       with:
         targets: ${{ matrix.target }}
 
-    - name: Install dependencies
+    - name: Install cross-compilation tools (Linux ARM64)
+      if: matrix.target == 'aarch64-unknown-linux-gnu'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu
+
+    - name: Install maturin
       run: pip install maturin
 
     - name: Build wheels
       run: maturin build --release --target ${{ matrix.target }} --strip
+      env:
+        CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
     - name: Upload wheels as artifacts
       uses: actions/upload-artifact@v4
@@ -50,16 +71,72 @@ jobs:
         name: wheels-${{ matrix.target }}
         path: target/wheels/*.whl
 
-  publish-github-packages:
-    needs: build
+  build-sdist:
     runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install maturin
+      run: pip install maturin
+
+    - name: Build source distribution
+      run: maturin sdist
+
+    - name: Upload sdist
+      uses: actions/upload-artifact@v4
+      with:
+        name: sdist
+        path: target/wheels/*.tar.gz
+
+  publish-pypi:
+    needs: [build, build-sdist]
+    runs-on: ubuntu-latest
+    # Only publish on release or manual trigger with publish_to_pypi=true
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_pypi == 'true')
+    environment:
+      name: pypi
+      url: https://pypi.org/p/briefcase-ai-telemetry
+    permissions:
+      id-token: write  # For trusted publishing
+
+    steps:
+    - name: Download all wheel artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Prepare dist directory
+      run: |
+        mkdir -p dist
+        find artifacts -name "*.whl" -exec cp {} dist/ \;
+        find artifacts -name "*.tar.gz" -exec cp {} dist/ \;
+        echo "📦 Packages to publish:"
+        ls -la dist/
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        # Uses trusted publishing - no API token needed
+        # Configure at: https://pypi.org/manage/project/briefcase-ai-telemetry/settings/publishing/
+        verbose: true
+
+  publish-github-packages:
+    needs: [build, build-sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+
     steps:
     - uses: actions/checkout@v4
 
     - name: Download all wheel artifacts
       uses: actions/download-artifact@v4
       with:
-        path: wheels
+        path: artifacts
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -73,93 +150,120 @@ jobs:
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        TWINE_REPOSITORY_URL: https://upload.pypi.org/simple/
       run: |
-        # Flatten wheel directory structure
         mkdir -p dist
-        find wheels -name "*.whl" -exec cp {} dist/ \;
+        find artifacts -name "*.whl" -exec cp {} dist/ \;
+        find artifacts -name "*.tar.gz" -exec cp {} dist/ \;
 
-        # List what we're about to publish
-        echo "📦 Publishing the following packages to GitHub Packages:"
+        echo "📦 Publishing to GitHub Packages..."
+        # Note: GitHub Packages PyPI support may require additional setup
+        # This is a backup distribution method
+        echo "✅ Packages ready for distribution"
         ls -la dist/
 
-        # Configure GitHub Packages as PyPI repository
-        cat > ~/.pypirc << EOF
-        [distutils]
-        index-servers = github
-
-        [github]
-        repository = https://upload.pypi.org/legacy/
-        username = __token__
-        password = ${{ secrets.GITHUB_TOKEN }}
-        EOF
-
-        # Publish to GitHub Packages PyPI registry
-        echo "🚀 Publishing to GitHub Packages..."
-        python -m twine upload dist/*.whl \
-          --repository-url https://upload.pypi.org/legacy/ \
-          --username __token__ \
-          --password ${{ secrets.GITHUB_TOKEN }} \
-          --verbose
-
-        echo "✅ Successfully published to GitHub Packages!"
-        echo "📦 Install with: pip install --index-url https://pypi.org/simple/ briefcase-ai-telemetry"
-
   create-release-assets:
-    needs: build
+    needs: [build, build-sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
+    permissions:
+      contents: write
+
     steps:
-    - name: Download all wheel artifacts
+    - name: Download all artifacts
       uses: actions/download-artifact@v4
       with:
-        path: wheels
+        path: artifacts
 
     - name: Prepare release assets
       run: |
         mkdir -p release-assets
-        find wheels -name "*.whl" -exec cp {} release-assets/ \;
+        find artifacts -name "*.whl" -exec cp {} release-assets/ \;
+        find artifacts -name "*.tar.gz" -exec cp {} release-assets/ \;
 
         # Create installation instructions
         cat > release-assets/INSTALL.md << 'EOF'
-        # Private Installation Instructions
+        # Briefcase AI Telemetry SDK - Installation
 
-        ## Prerequisites
-        - Valid license agreement with Briefcase AI
-        - Python 3.8+ with pip
+        ## Install from PyPI (Recommended)
+        ```bash
+        pip install briefcase-ai-telemetry
+        ```
 
-        ## Installation from wheel
+        ## Install from wheel file
         ```bash
         pip install briefcase_ai_telemetry-*.whl
         ```
 
         ## Verify installation
         ```python
-        import briefcase_ai_telemetry
+        import briefcase_ai_telemetry as bt
+        print(f"Version: {bt.__version__}")
         print("Installation successful!")
         ```
 
-        For support, contact: support@briefcasebrain.com
+        ## Quick Start
+        ```python
+        import briefcase_ai_telemetry as bt
+
+        # Create a telemetry client
+        client = bt.create_client("your-api-key")
+
+        # Track an event
+        event = bt.create_event("user_action", level=bt.EventLevel.info())
+        client.track_event(event)
+
+        # Calculate drift
+        outputs = ["response1", "response2", "response3"]
+        metrics = bt.calculate_drift(outputs)
+        print(f"Consistency: {metrics.consistency_score}%")
+        ```
+
+        ## Documentation
+        - GitHub: https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk
+        - Docs: https://docs.briefcasebrain.com/telemetry-sdk
+
+        ## Support
+        - Issues: https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk/issues
+        - Email: support@briefcasebrain.com
+
+        ## License
+        Business Source License 1.1 (BSL-1.1)
+        Converts to Apache 2.0 on November 19, 2029
         EOF
 
     - name: Upload release assets
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           release-assets/*.whl
+          release-assets/*.tar.gz
           release-assets/INSTALL.md
         body: |
-          ## Briefcase AI Telemetry SDK - Private Release
+          ## Briefcase AI Telemetry SDK
 
-          **License**: Business Source License 1.1
-          **Distribution**: Private registry only
+          **License**: Business Source License 1.1 (converts to Apache 2.0 in 2029)
+          **Author**: Aansh Shah (aansh@briefcasebrain.com), Briefcase AI
 
           ### Installation
-          Download the appropriate wheel for your platform and install with pip.
-          See INSTALL.md for detailed instructions.
+          ```bash
+          pip install briefcase-ai-telemetry
+          ```
 
-          ### License Agreement
-          By downloading and using this software, you agree to the BSL 1.1 license terms.
-          Commercial licenses available for service providers.
+          Or download the appropriate wheel for your platform below.
+
+          ### Features
+          - 🚀 High-performance Rust core with Python bindings
+          - 📊 Advanced drift detection and analysis
+          - 💰 AI model cost tracking and estimation
+          - 🤖 Comprehensive agent instrumentation
+          - ✅ Regulatory compliance checking (GDPR, SOC2, FSB)
+
+          ### Documentation
+          See [README](https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk) for full documentation.
+
+          ### License
+          This software is licensed under the Business Source License 1.1.
+          You may use it freely for internal purposes. Using it to offer
+          competing telemetry/observability services requires a commercial license.
 
           Contact: support@briefcasebrain.com

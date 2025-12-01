@@ -5,11 +5,11 @@ resolver = "2"
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["Briefcase AI <hello@briefcase.ai>"]
+authors = ["Aansh Shah <aansh@briefcasebrain.com>", "Briefcase AI <hello@briefcasebrain.com>"]
 license = "BSL-1.1"
 repository = "https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk"
-homepage = "https://briefcase.ai"
-documentation = "https://docs.rs/briefcase-ai-telemetry-sdk"
+homepage = "https://briefcasebrain.com"
+documentation = "https://docs.briefcasebrain.com/telemetry-sdk"
 description = "A high-performance telemetry SDK for AI applications with advanced drift detection, cost tracking, agent instrumentation, and compliance checking"
 keywords = ["telemetry", "ai", "monitoring", "analytics", "drift-detection", "cost-tracking", "compliance", "agents"]
 categories = ["development-tools", "web-programming", "science", "algorithms"]
@@ -35,6 +35,7 @@ reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-feature
 
 # Async
 futures = "0.3"
+async-trait = "0.1"
 
 # Text processing
 regex = "1.0"

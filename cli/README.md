@@ -181,7 +181,7 @@ briefcase_ai:
   api_key: "your-api-key"
   agent_id: 1
   enabled: true
-  endpoint: "https://api.briefcase.ai/telemetry"
+  endpoint: "https://telemetry.briefcasebrain.com/api"
 
 instrumentation:
   auto_capture_inputs: true
@@ -280,13 +280,13 @@ isort briefcase_ai_cli/
 
 ## Documentation
 
-- [Briefcase AI Documentation](https://docs.briefcase.ai)
-- [SDK Reference](https://docs.briefcase.ai/sdk)
-- [Integration Guides](https://docs.briefcase.ai/integrations)
-- [API Reference](https://docs.briefcase.ai/api)
+- [Briefcase AI Documentation](https://docs.briefcasebrain.com)
+- [SDK Reference](https://docs.briefcasebrain.com/sdk)
+- [Integration Guides](https://docs.briefcasebrain.com/integrations)
+- [API Reference](https://docs.briefcasebrain.com/api)
 
 ## Support
 
 - GitHub Issues: [Report bugs](https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk/issues)
-- Documentation: [docs.briefcase.ai](https://docs.briefcase.ai)
+- Documentation: [docs.briefcasebrain.com](https://docs.briefcasebrain.com)
 - Community: [Discord](https://discord.gg/briefcase-ai)

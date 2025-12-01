@@ -28,7 +28,9 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 reqwest = { workspace = true }
 futures = { workspace = true }
+async-trait = { workspace = true }
 regex = { workspace = true }
+urlencoding = "2.1"
 
 # Python bindings
 pyo3 = { workspace = true, optional = true }

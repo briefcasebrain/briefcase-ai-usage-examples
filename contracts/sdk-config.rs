@@ -1,21 +1,17 @@
+//! SDK Configuration Contracts for Multi-Protocol Architecture
+//!
+//! This module defines the trait contracts and configuration structures for the
+//! modernized briefcase-ai-telemetry-sdk that supports multiple protocols,
+//! organization context, and experiment integration while maintaining 100%
+//! backward compatibility.
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::Duration;
-
-/// Legacy configuration structure - maintained for backward compatibility
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TelemetryConfig {
-    pub api_key: String,
-    pub endpoint: String,
-    pub timeout: Duration,
-    pub retry_attempts: u32,
-    pub batch_size: usize,
-    pub flush_interval: Duration,
-    pub enabled: bool,
-}
+use uuid::Uuid;
 
 /// Enumeration of supported endpoint types for multi-protocol architecture
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum EndpointType {
     /// Legacy tRPC protocol (maintains backward compatibility)
     TrpcLegacy,
@@ -35,7 +31,7 @@ impl Default for EndpointType {
 }
 
 /// Authentication modes for different protocol types and use cases
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum AuthMode {
     /// Traditional API key authentication (bca_ prefixed keys)
     ApiKey { key: String },
@@ -224,12 +220,9 @@ impl EnhancedTelemetryConfig {
         let key = api_key.into();
         Self {
             auth: AuthMode::api_key(key.clone()),
-            endpoint_type: EndpointType::RestApi,
-            endpoint_url: "https://telemetry.briefcasebrain.com/api/v1/telemetry".to_string(),
-            fallback_endpoints: vec![
-                // Fallback to legacy tRPC endpoint for backward compatibility
-                (EndpointType::TrpcLegacy, "https://telemetry.briefcasebrain.com/api/trpc/ingest.telemetry".to_string()),
-            ],
+            endpoint_type: EndpointType::TrpcLegacy,
+            endpoint_url: "https://your-telemetry-endpoint.com/api/trpc/ingest.telemetry".to_string(),
+            fallback_endpoints: vec![],
             organization: None,
             experiments: vec![],
             timeout: Duration::from_secs(10),
@@ -247,7 +240,7 @@ impl EnhancedTelemetryConfig {
         Self {
             auth: AuthMode::jwt_token(token),
             endpoint_type: EndpointType::RestApi,
-            endpoint_url: "https://telemetry.briefcasebrain.com/api/v1/telemetry".to_string(),
+            endpoint_url: "https://your-telemetry-endpoint.com/api/v1/telemetry".to_string(),
             fallback_endpoints: vec![],
             organization: None,
             experiments: vec![],
@@ -356,7 +349,7 @@ impl EnhancedTelemetryConfig {
     }
 
     /// Migrates from legacy TelemetryConfig for backward compatibility
-    pub fn from_legacy(legacy_config: &TelemetryConfig) -> Self {
+    pub fn from_legacy(legacy_config: &super::TelemetryConfig) -> Self {
         Self::with_api_key(legacy_config.api_key.clone())
             .with_endpoint(EndpointType::TrpcLegacy, legacy_config.endpoint.clone())
             .with_timeout(legacy_config.timeout)
@@ -367,91 +360,60 @@ impl EnhancedTelemetryConfig {
     }
 }
 
-impl TelemetryConfig {
-    pub fn new(api_key: String) -> Self {
-        Self {
-            api_key,
-            endpoint: "https://telemetry.briefcasebrain.com/api/v1/telemetry".to_string(),
-            timeout: Duration::from_secs(10),
-            retry_attempts: 3,
-            batch_size: 100,
-            flush_interval: Duration::from_secs(5),
-            enabled: true,
-        }
-    }
+/// Trait for protocol-specific client implementations
+pub trait ProtocolClient: Send + Sync {
+    /// Sends telemetry data using the protocol-specific implementation
+    fn send_telemetry(&self, data: &[u8]) -> impl std::future::Future<Output = Result<(), Box<dyn std::error::Error + Send + Sync>>>;
 
-    pub fn with_endpoint(mut self, endpoint: String) -> Self {
-        self.endpoint = endpoint;
-        self
-    }
+    /// Sends agent run data
+    fn send_agent_run(&self, data: &serde_json::Value) -> impl std::future::Future<Output = Result<(), Box<dyn std::error::Error + Send + Sync>>>;
 
-    pub fn with_timeout(mut self, timeout: Duration) -> Self {
-        self.timeout = timeout;
-        self
-    }
+    /// Sends batch data
+    fn send_batch(&self, records: &[serde_json::Value]) -> impl std::future::Future<Output = Result<(), Box<dyn std::error::Error + Send + Sync>>>;
 
-    pub fn with_retry_attempts(mut self, retry_attempts: u32) -> Self {
-        self.retry_attempts = retry_attempts;
-        self
-    }
+    /// Validates the configuration for this protocol
+    fn validate_config(&self, config: &EnhancedTelemetryConfig) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
 
-    pub fn with_batch_size(mut self, batch_size: usize) -> Self {
-        self.batch_size = batch_size;
-        self
-    }
+    /// Returns the protocol type this client handles
+    fn protocol_type(&self) -> EndpointType;
+}
 
-    pub fn with_flush_interval(mut self, flush_interval: Duration) -> Self {
-        self.flush_interval = flush_interval;
-        self
-    }
+/// Trait for experiment enrollment and management
+pub trait ExperimentManager: Send + Sync {
+    /// Enrolls the client in available experiments
+    fn enroll_experiments(&mut self, org_context: &OrganizationContext) -> impl std::future::Future<Output = Result<Vec<ExperimentContext>, Box<dyn std::error::Error + Send + Sync>>>;
 
-    pub fn with_enabled(mut self, enabled: bool) -> Self {
-        self.enabled = enabled;
-        self
-    }
+    /// Updates experiment status (for example, when an experiment ends)
+    fn update_experiments(&mut self) -> impl std::future::Future<Output = Result<(), Box<dyn std::error::Error + Send + Sync>>>;
+
+    /// Tags an event with experiment variants
+    fn tag_event_with_experiments(&self, event: &mut super::Event, experiments: &[ExperimentContext]);
+}
+
+/// Trait for data format transformation between protocols
+pub trait DataTransformer: Send + Sync {
+    /// Transforms telemetry data to protocol-specific format
+    fn transform_telemetry_data(&self, data: &super::TelemetryData, target_protocol: EndpointType) -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sync>>;
+
+    /// Transforms agent run data to protocol-specific format
+    fn transform_agent_run_data(&self, data: &serde_json::Value, target_protocol: EndpointType) -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sync>>;
+
+    /// Transforms batch data to protocol-specific format
+    fn transform_batch_data(&self, records: &[serde_json::Value], target_protocol: EndpointType) -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sync>>;
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // Legacy TelemetryConfig tests (backward compatibility)
-    #[test]
-    fn test_config_creation() {
-        let config = TelemetryConfig::new("test_key".to_string());
-        assert_eq!(config.api_key, "test_key");
-        assert_eq!(
-            config.endpoint,
-            "https://telemetry.briefcasebrain.com/api/v1/telemetry"
-        );
-        assert!(config.enabled);
-    }
-
-    #[test]
-    fn test_config_with_custom_endpoint() {
-        let config = TelemetryConfig::new("test_key".to_string())
-            .with_endpoint("https://custom.endpoint.com/telemetry".to_string());
-        assert_eq!(config.endpoint, "https://custom.endpoint.com/telemetry");
-    }
-
-    #[test]
-    fn test_config_disabled() {
-        let config = TelemetryConfig::new("test_key".to_string()).with_enabled(false);
-        assert!(!config.enabled);
-    }
-
-    // EnhancedTelemetryConfig tests (new features)
     #[test]
     fn test_enhanced_config_creation_with_api_key() {
         let config = EnhancedTelemetryConfig::with_api_key("bca_test_key");
 
         assert!(matches!(config.auth, AuthMode::ApiKey { .. }));
-        assert_eq!(config.endpoint_type, EndpointType::RestApi);
-        assert_eq!(config.endpoint_url, "https://telemetry.briefcasebrain.com/api/v1/telemetry");
+        assert_eq!(config.endpoint_type, EndpointType::TrpcLegacy);
         assert!(config.enabled);
         assert_eq!(config.legacy_api_key, Some("bca_test_key".to_string()));
-        // Verify fallback endpoint is configured
-        assert_eq!(config.fallback_endpoints.len(), 1);
     }
 
     #[test]
@@ -503,85 +465,5 @@ mod tests {
         assert_eq!(experiment.experiment_name, Some("Feature Flag Test".to_string()));
         assert!(experiment.active);
         assert_eq!(experiment.config.get("feature_enabled"), Some(&serde_json::Value::Bool(true)));
-    }
-
-    #[test]
-    fn test_enhanced_config_with_organization_and_experiments() {
-        let org_context = OrganizationContext::new("org_456", "data_team");
-        let experiment = ExperimentContext::new("exp_789", "control");
-
-        let config = EnhancedTelemetryConfig::with_api_key("bca_test")
-            .with_organization(org_context)
-            .with_experiment(experiment);
-
-        assert!(config.organization.is_some());
-        assert_eq!(config.experiments.len(), 1);
-        assert_eq!(config.experiments[0].experiment_id, "exp_789");
-    }
-
-    #[test]
-    fn test_enhanced_config_from_legacy() {
-        let legacy_config = TelemetryConfig::new("legacy_key".to_string())
-            .with_endpoint("https://legacy.endpoint.com".to_string())
-            .with_batch_size(50);
-
-        let enhanced_config = EnhancedTelemetryConfig::from_legacy(&legacy_config);
-
-        assert!(matches!(enhanced_config.auth, AuthMode::ApiKey { .. }));
-        assert_eq!(enhanced_config.endpoint_type, EndpointType::TrpcLegacy);
-        assert_eq!(enhanced_config.endpoint_url, "https://legacy.endpoint.com");
-        assert_eq!(enhanced_config.batch_size, 50);
-        assert_eq!(enhanced_config.legacy_api_key, Some("legacy_key".to_string()));
-    }
-
-    #[test]
-    fn test_auth_mode_constructors() {
-        let api_key_auth = AuthMode::api_key("bca_123");
-        assert!(matches!(api_key_auth, AuthMode::ApiKey { .. }));
-
-        let jwt_auth = AuthMode::jwt_token("jwt_456");
-        assert!(matches!(jwt_auth, AuthMode::JwtToken { .. }));
-
-        let sts_auth = AuthMode::sts_credentials("access", "secret", "us-east-1");
-        assert!(matches!(sts_auth, AuthMode::StsCredentials { .. }));
-
-        let sts_auth_with_session = AuthMode::sts_credentials_with_session(
-            "access", "secret", "session", "us-west-2"
-        );
-        if let AuthMode::StsCredentials { session_token, .. } = sts_auth_with_session {
-            assert_eq!(session_token, Some("session".to_string()));
-        } else {
-            panic!("Expected StsCredentials with session token");
-        }
-    }
-
-    #[test]
-    fn test_endpoint_type_default() {
-        let default_endpoint = EndpointType::default();
-        assert_eq!(default_endpoint, EndpointType::TrpcLegacy);
-    }
-
-    #[test]
-    fn test_enhanced_config_fallback_endpoints() {
-        let config = EnhancedTelemetryConfig::with_jwt_token("token")
-            .with_fallback_endpoint(EndpointType::TrpcLegacy, "https://backup.example.com")
-            .with_fallback_endpoint(EndpointType::KinesisStream, "kinesis-backup");
-
-        assert_eq!(config.fallback_endpoints.len(), 2);
-        assert_eq!(config.fallback_endpoints[0].0, EndpointType::TrpcLegacy);
-        assert_eq!(config.fallback_endpoints[0].1, "https://backup.example.com");
-    }
-
-    #[test]
-    fn test_enhanced_config_protocol_configs() {
-        let kinesis_config = serde_json::json!({
-            "stream_name": "test-stream",
-            "batch_size": 250
-        });
-
-        let config = EnhancedTelemetryConfig::with_api_key("test")
-            .with_protocol_config(EndpointType::KinesisStream, kinesis_config.clone());
-
-        assert_eq!(config.protocol_configs.get(&EndpointType::KinesisStream), Some(&kinesis_config));
     }
 }

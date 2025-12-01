@@ -270,7 +270,7 @@ else:
     openai_integration.configure(
         api_key=os.getenv("BRIEFCASE_API_KEY_DEV"),
         capture_system_messages=True,   # Capture everything in dev
-        endpoint="https://api-dev.briefcase.ai/telemetry"
+        endpoint="https://telemetry.briefcasebrain.com/api"
     )
 ```
 

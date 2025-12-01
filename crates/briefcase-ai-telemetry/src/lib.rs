@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
+// Core modules
 pub mod client;
 pub mod compliance;
 pub mod config;
@@ -18,13 +19,41 @@ pub mod event;
 pub mod instrumentation;
 pub mod telemetry;
 
+// New modernization modules
+pub mod auth;
+pub mod enhanced_client_basic;
+pub mod experiment;
+pub mod protocols;
+pub mod transformer;
+
 #[cfg(feature = "python")]
 pub mod python;
 
+// Legacy exports (backward compatibility)
 pub use client::TelemetryClient;
 pub use config::TelemetryConfig;
 pub use event::{Event, EventBuilder, EventLevel, EventMetadata};
 pub use telemetry::TelemetryData;
+
+// New exports for enhanced functionality
+pub use auth::{AuthManager, AuthError};
+pub use config::{
+    EnhancedTelemetryConfig,
+    EndpointType,
+    AuthMode,
+    OrganizationContext,
+    ExperimentContext
+};
+pub use enhanced_client_basic::BasicEnhancedTelemetryClient;
+pub use experiment::{ExperimentManager, ExperimentManagerFactory, ExperimentError};
+pub use protocols::{
+    ProtocolClient,
+    ProtocolError,
+    ProtocolResult,
+    MultiProtocolClient,
+    ProtocolClientFactory
+};
+pub use transformer::DefaultDataTransformer;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Session {

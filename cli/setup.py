@@ -20,7 +20,7 @@ setup(
     project_urls={
         "Bug Reports": "https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk/issues",
         "Source": "https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk",
-        "Documentation": "https://docs.briefcase.ai",
+        "Documentation": "https://docs.briefcasebrain.com",
     },
     packages=find_packages(),
     classifiers=[

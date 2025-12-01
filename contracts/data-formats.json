@@ -1,0 +1,696 @@
+{
+  "specification_version": "1.0.0",
+  "description": "Data format specifications for multi-protocol briefcase-ai-telemetry-sdk",
+  "protocols": {
+    "TrpcLegacy": {
+      "description": "Legacy tRPC protocol format for backward compatibility",
+      "content_type": "application/json",
+      "endpoint_pattern": "/api/trpc/ingest.telemetry",
+      "authentication": {
+        "methods": ["ApiKey", "Bearer"],
+        "headers": {
+          "Authorization": "ApiKey bca_... | Bearer <token>"
+        }
+      },
+      "data_format": {
+        "envelope": {
+          "json": {
+            "type": "object",
+            "required": ["apiKey", "session", "events"],
+            "properties": {
+              "apiKey": {
+                "type": "string",
+                "pattern": "^bca_[a-zA-Z0-9]+$",
+                "description": "Legacy API key for authentication"
+              },
+              "session": {
+                "$ref": "#/shared_schemas/session"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/shared_schemas/event"
+                }
+              },
+              "metadata": {
+                "$ref": "#/shared_schemas/metadata"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sdk_version": {
+                "type": "string"
+              },
+              "platform": {
+                "type": "string"
+              },
+              "environment": {
+                "type": "string",
+                "nullable": true
+              },
+              "organization": {
+                "$ref": "#/shared_schemas/organization_context",
+                "description": "Added for forward compatibility"
+              },
+              "experiments": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/shared_schemas/experiment_context"
+                },
+                "description": "Added for forward compatibility"
+              }
+            }
+          }
+        }
+      },
+      "example": {
+        "json": {
+          "apiKey": "bca_1234567890abcdef",
+          "session": {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "user_id": "user_123",
+            "started_at": "2024-11-24T10:00:00Z",
+            "metadata": {
+              "app_version": "1.2.3",
+              "user_agent": "MyApp/1.0"
+            }
+          },
+          "events": [
+            {
+              "id": "550e8400-e29b-41d4-a716-446655440001",
+              "name": "model_inference",
+              "level": "Info",
+              "timestamp": "2024-11-24T10:05:00Z",
+              "message": "Model inference completed",
+              "metadata": {
+                "user_id": "user_123",
+                "session_id": "550e8400-e29b-41d4-a716-446655440000",
+                "tags": {
+                  "model": "gpt-4",
+                  "environment": "production"
+                },
+                "custom_data": {
+                  "input_tokens": 150,
+                  "output_tokens": 75,
+                  "latency_ms": 1200
+                }
+              },
+              "duration_ms": 1200,
+              "error": null
+            }
+          ],
+          "metadata": {
+            "deployment_id": "deploy_456",
+            "region": "us-east-1"
+          },
+          "timestamp": "2024-11-24T10:05:00Z",
+          "sdk_version": "0.1.0",
+          "platform": "linux",
+          "environment": "production",
+          "organization": {
+            "org_id": "org_123",
+            "org_name": "Acme Corp",
+            "agent_group": "ml_agents",
+            "environment": "production",
+            "metadata": {
+              "region": "us-east-1",
+              "cluster": "prod-cluster-1"
+            }
+          },
+          "experiments": [
+            {
+              "experiment_id": "exp_456",
+              "experiment_name": "New Model Architecture",
+              "variant": "variant_a",
+              "enrolled_at": "2024-11-24T09:00:00Z",
+              "config": {
+                "model_temperature": 0.7,
+                "max_tokens": 1000
+              },
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "RestApi": {
+      "description": "Modern REST API format for dashboard users and new integrations",
+      "content_type": "application/json",
+      "endpoint_pattern": "/api/v1/telemetry",
+      "authentication": {
+        "methods": ["JwtToken"],
+        "headers": {
+          "Authorization": "Bearer <jwt_token>"
+        }
+      },
+      "data_format": {
+        "type": "object",
+        "required": ["organization", "session", "events"],
+        "properties": {
+          "organization": {
+            "$ref": "#/shared_schemas/organization_context"
+          },
+          "experiments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/shared_schemas/experiment_context"
+            }
+          },
+          "session": {
+            "$ref": "#/shared_schemas/session"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/shared_schemas/event"
+            }
+          },
+          "metadata": {
+            "$ref": "#/shared_schemas/metadata"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sdk_version": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          }
+        }
+      },
+      "example": {
+        "organization": {
+          "org_id": "org_123",
+          "org_name": "Acme Corp",
+          "agent_group": "ml_agents",
+          "environment": "production",
+          "metadata": {
+            "region": "us-east-1",
+            "cluster": "prod-cluster-1"
+          }
+        },
+        "experiments": [
+          {
+            "experiment_id": "exp_456",
+            "experiment_name": "New Model Architecture",
+            "variant": "variant_a",
+            "enrolled_at": "2024-11-24T09:00:00Z",
+            "config": {
+              "model_temperature": 0.7,
+              "max_tokens": 1000
+            },
+            "active": true
+          }
+        ],
+        "session": {
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "user_id": "user_123",
+          "started_at": "2024-11-24T10:00:00Z",
+          "metadata": {
+            "app_version": "1.2.3",
+            "user_agent": "MyApp/1.0"
+          }
+        },
+        "events": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440001",
+            "name": "model_inference",
+            "level": "Info",
+            "timestamp": "2024-11-24T10:05:00Z",
+            "message": "Model inference completed",
+            "metadata": {
+              "user_id": "user_123",
+              "session_id": "550e8400-e29b-41d4-a716-446655440000",
+              "trace_id": "trace_789",
+              "span_id": "span_101",
+              "tags": {
+                "model": "gpt-4",
+                "environment": "production",
+                "experiment_variant": "variant_a"
+              },
+              "custom_data": {
+                "input_tokens": 150,
+                "output_tokens": 75,
+                "latency_ms": 1200,
+                "cost_usd": 0.0045
+              }
+            },
+            "duration_ms": 1200,
+            "error": null
+          }
+        ],
+        "metadata": {
+          "deployment_id": "deploy_456",
+          "region": "us-east-1"
+        },
+        "timestamp": "2024-11-24T10:05:00Z",
+        "sdk_version": "0.1.0",
+        "platform": "linux"
+      }
+    },
+    "KinesisStream": {
+      "description": "AWS Kinesis Stream format for high-throughput real-time ingestion",
+      "content_type": "application/json",
+      "stream_configuration": {
+        "partition_key": "session_id",
+        "compression": "gzip",
+        "batch_size": 500
+      },
+      "authentication": {
+        "methods": ["StsCredentials"],
+        "aws_credentials": {
+          "access_key_id": "AKIA...",
+          "secret_access_key": "...",
+          "session_token": "...",
+          "region": "us-east-1"
+        }
+      },
+      "data_format": {
+        "type": "object",
+        "required": ["record_type", "organization_id", "session_id", "timestamp"],
+        "properties": {
+          "record_type": {
+            "type": "string",
+            "enum": ["telemetry", "agent_run", "batch"],
+            "description": "Type of record for stream processing"
+          },
+          "organization_id": {
+            "type": "string",
+            "description": "Organization identifier for partitioning"
+          },
+          "agent_group": {
+            "type": "string",
+            "description": "Agent group within organization"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Session ID used as partition key"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Record creation timestamp"
+          },
+          "event": {
+            "$ref": "#/shared_schemas/event",
+            "description": "Single event (one record per event)"
+          },
+          "experiments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/shared_schemas/experiment_context"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "sdk_version": {"type": "string"},
+              "platform": {"type": "string"},
+              "environment": {"type": "string"},
+              "sequence_number": {"type": "integer"}
+            }
+          }
+        }
+      },
+      "example": {
+        "record_type": "telemetry",
+        "organization_id": "org_123",
+        "agent_group": "ml_agents",
+        "session_id": "550e8400-e29b-41d4-a716-446655440000",
+        "timestamp": "2024-11-24T10:05:00Z",
+        "event": {
+          "id": "550e8400-e29b-41d4-a716-446655440001",
+          "name": "model_inference",
+          "level": "Info",
+          "timestamp": "2024-11-24T10:05:00Z",
+          "message": "Model inference completed",
+          "metadata": {
+            "user_id": "user_123",
+            "session_id": "550e8400-e29b-41d4-a716-446655440000",
+            "trace_id": "trace_789",
+            "span_id": "span_101",
+            "tags": {
+              "model": "gpt-4",
+              "environment": "production",
+              "experiment_variant": "variant_a"
+            },
+            "custom_data": {
+              "input_tokens": 150,
+              "output_tokens": 75,
+              "latency_ms": 1200,
+              "cost_usd": 0.0045
+            }
+          },
+          "duration_ms": 1200,
+          "error": null
+        },
+        "experiments": [
+          {
+            "experiment_id": "exp_456",
+            "experiment_name": "New Model Architecture",
+            "variant": "variant_a",
+            "enrolled_at": "2024-11-24T09:00:00Z",
+            "config": {
+              "model_temperature": 0.7,
+              "max_tokens": 1000
+            },
+            "active": true
+          }
+        ],
+        "metadata": {
+          "sdk_version": "0.1.0",
+          "platform": "linux",
+          "environment": "production",
+          "sequence_number": 12345
+        }
+      }
+    },
+    "LakefsDirect": {
+      "description": "LakeFS direct integration for data versioning and lineage",
+      "content_type": "application/json",
+      "lakefs_configuration": {
+        "repository": "briefcase-telemetry",
+        "branch": "main",
+        "path_template": "/telemetry/{org_id}/{date}/session_{session_id}.json",
+        "commit_strategy": "time_based"
+      },
+      "authentication": {
+        "methods": ["LakeFSAccessKey", "StsCredentials"],
+        "headers": {
+          "Authorization": "Basic <lakefs_access_key>"
+        }
+      },
+      "data_format": {
+        "type": "object",
+        "required": ["lakefs_metadata", "telemetry_data"],
+        "properties": {
+          "lakefs_metadata": {
+            "type": "object",
+            "properties": {
+              "repository": {"type": "string"},
+              "branch": {"type": "string"},
+              "path": {"type": "string"},
+              "commit_metadata": {
+                "type": "object",
+                "properties": {
+                  "message": {"type": "string"},
+                  "committer": {"type": "string"},
+                  "timestamp": {"type": "string", "format": "date-time"}
+                }
+              }
+            }
+          },
+          "telemetry_data": {
+            "type": "object",
+            "properties": {
+              "organization": {
+                "$ref": "#/shared_schemas/organization_context"
+              },
+              "session": {
+                "$ref": "#/shared_schemas/session"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/shared_schemas/event"
+                }
+              },
+              "experiments": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/shared_schemas/experiment_context"
+                }
+              },
+              "metadata": {
+                "$ref": "#/shared_schemas/metadata"
+              }
+            }
+          }
+        }
+      },
+      "example": {
+        "lakefs_metadata": {
+          "repository": "briefcase-telemetry",
+          "branch": "main",
+          "path": "/telemetry/org_123/2024-11-24/session_550e8400-e29b-41d4-a716-446655440000.json",
+          "commit_metadata": {
+            "message": "Telemetry data from ml_agents at 2024-11-24T10:05:00Z",
+            "committer": "briefcase-ai-sdk",
+            "timestamp": "2024-11-24T10:05:00Z"
+          }
+        },
+        "telemetry_data": {
+          "organization": {
+            "org_id": "org_123",
+            "org_name": "Acme Corp",
+            "agent_group": "ml_agents",
+            "environment": "production",
+            "metadata": {
+              "region": "us-east-1",
+              "cluster": "prod-cluster-1"
+            }
+          },
+          "session": {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "user_id": "user_123",
+            "started_at": "2024-11-24T10:00:00Z",
+            "metadata": {
+              "app_version": "1.2.3",
+              "user_agent": "MyApp/1.0"
+            }
+          },
+          "events": [
+            {
+              "id": "550e8400-e29b-41d4-a716-446655440001",
+              "name": "model_inference",
+              "level": "Info",
+              "timestamp": "2024-11-24T10:05:00Z",
+              "message": "Model inference completed",
+              "metadata": {
+                "user_id": "user_123",
+                "session_id": "550e8400-e29b-41d4-a716-446655440000",
+                "trace_id": "trace_789",
+                "span_id": "span_101",
+                "tags": {
+                  "model": "gpt-4",
+                  "environment": "production",
+                  "experiment_variant": "variant_a"
+                },
+                "custom_data": {
+                  "input_tokens": 150,
+                  "output_tokens": 75,
+                  "latency_ms": 1200,
+                  "cost_usd": 0.0045
+                }
+              },
+              "duration_ms": 1200,
+              "error": null
+            }
+          ],
+          "experiments": [
+            {
+              "experiment_id": "exp_456",
+              "experiment_name": "New Model Architecture",
+              "variant": "variant_a",
+              "enrolled_at": "2024-11-24T09:00:00Z",
+              "config": {
+                "model_temperature": 0.7,
+                "max_tokens": 1000
+              },
+              "active": true
+            }
+          ],
+          "metadata": {
+            "sdk_version": "0.1.0",
+            "platform": "linux",
+            "environment": "production",
+            "collection_timestamp": "2024-11-24T10:05:00Z"
+          }
+        }
+      }
+    }
+  },
+  "shared_schemas": {
+    "session": {
+      "type": "object",
+      "required": ["id", "started_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique session identifier"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "description": "Optional user identifier"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Session start timestamp"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Additional session metadata"
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "required": ["id", "name", "level", "timestamp"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique event identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Event name or type"
+        },
+        "level": {
+          "type": "string",
+          "enum": ["Debug", "Info", "Warning", "Error", "Critical"],
+          "description": "Event severity level"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Event timestamp"
+        },
+        "message": {
+          "type": "string",
+          "nullable": true,
+          "description": "Optional event message"
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "user_id": {"type": "string", "nullable": true},
+            "session_id": {"type": "string", "format": "uuid", "nullable": true},
+            "trace_id": {"type": "string", "nullable": true},
+            "span_id": {"type": "string", "nullable": true},
+            "tags": {
+              "type": "object",
+              "additionalProperties": {"type": "string"}
+            },
+            "custom_data": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "duration_ms": {
+          "type": "integer",
+          "nullable": true,
+          "description": "Optional event duration in milliseconds"
+        },
+        "error": {
+          "type": "string",
+          "nullable": true,
+          "description": "Optional error message"
+        }
+      }
+    },
+    "organization_context": {
+      "type": "object",
+      "required": ["org_id", "agent_group"],
+      "properties": {
+        "org_id": {
+          "type": "string",
+          "description": "Organization identifier"
+        },
+        "org_name": {
+          "type": "string",
+          "nullable": true,
+          "description": "Organization display name"
+        },
+        "agent_group": {
+          "type": "string",
+          "description": "Agent group within organization"
+        },
+        "environment": {
+          "type": "string",
+          "nullable": true,
+          "description": "Environment (dev, staging, prod)"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {"type": "string"},
+          "description": "Additional organization metadata"
+        }
+      }
+    },
+    "experiment_context": {
+      "type": "object",
+      "required": ["experiment_id", "variant", "enrolled_at", "active"],
+      "properties": {
+        "experiment_id": {
+          "type": "string",
+          "description": "Unique experiment identifier"
+        },
+        "experiment_name": {
+          "type": "string",
+          "nullable": true,
+          "description": "Human-readable experiment name"
+        },
+        "variant": {
+          "type": "string",
+          "description": "Experiment variant (control, variant_a, variant_b, etc.)"
+        },
+        "enrolled_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Experiment enrollment timestamp"
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Experiment configuration parameters"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the experiment is currently active"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "sdk_version": {"type": "string"},
+        "platform": {"type": "string"},
+        "environment": {"type": "string", "nullable": true}
+      },
+      "additionalProperties": true,
+      "description": "General metadata fields"
+    }
+  },
+  "migration_mappings": {
+    "description": "Field mappings for migrating between protocol formats",
+    "trpc_to_rest": {
+      "apiKey": "REMOVED (use JWT authentication)",
+      "json.session": "session",
+      "json.events": "events",
+      "json.metadata": "metadata",
+      "json.organization": "organization",
+      "json.experiments": "experiments"
+    },
+    "rest_to_kinesis": {
+      "organization.org_id": "organization_id",
+      "organization.agent_group": "agent_group",
+      "session.id": "session_id",
+      "events": "event (one record per event)",
+      "timestamp": "timestamp"
+    },
+    "any_to_lakefs": {
+      "ALL_DATA": "telemetry_data",
+      "ADD_LAKEFS_METADATA": "lakefs_metadata"
+    }
+  }
+}

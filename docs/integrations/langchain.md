@@ -488,7 +488,7 @@ else:
         api_key=os.getenv("BRIEFCASE_API_KEY_DEV"),
         capture_agent_thoughts=True,     # Full tracking in dev
         capture_retrieval_docs=True,
-        endpoint="https://api-dev.briefcase.ai/telemetry"
+        endpoint="https://telemetry.briefcasebrain.com/api"
     )
 
 langchain_integration.enable_instrumentation()

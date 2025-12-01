@@ -554,7 +554,7 @@ else:
         auto_capture_inputs=True,       # Full tracking in dev
         auto_capture_outputs=True,
         sample_rate=1.0,               # Track everything in dev
-        endpoint="https://api-dev.briefcase.ai/telemetry"
+        endpoint="https://telemetry.briefcasebrain.com/api"
     )
 
 huggingface_integration.enable_instrumentation()

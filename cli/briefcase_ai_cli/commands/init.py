@@ -182,7 +182,7 @@ This directory contains examples for integrating Briefcase AI telemetry with {fr
 
 ## Documentation
 
-Visit https://docs.briefcase.ai for comprehensive guides and API documentation.
+Visit https://docs.briefcasebrain.com for comprehensive guides and API documentation.
 """
 
     with open(examples_dir / "README.md", 'w') as f:

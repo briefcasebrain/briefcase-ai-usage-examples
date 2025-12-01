@@ -408,7 +408,7 @@ Migration is straightforward:
 - 📚 [Main Documentation](../README.md)
 - 🐛 [Issue Tracker](https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk/issues)
 - 💬 [Discussions](https://github.com/briefcasebrain/briefcase-ai-telemetry-sdk/discussions)
-- 📧 [Email Support](mailto:support@briefcase.ai)
+- 📧 [Email Support](mailto:support@briefcasebrain.com)
 
 ## Contributing
 
