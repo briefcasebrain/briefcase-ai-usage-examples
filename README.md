@@ -190,4 +190,72 @@ For security documentation and compliance certifications, contact security@brief
 
 ---
 
+## Vantara Commerce E-Commerce Demo
+
+**Complete enterprise AI governance demonstration for retail e-commerce**
+
+In addition to the regulatory workflows above, this repository includes a comprehensive demo showcasing enterprise AI governance for a fictional large-scale retail e-commerce company, Vantara Commerce. This demo illustrates how organizations with multiple AI-powered teams can achieve complete governance and audit capabilities.
+
+### Demo Overview
+
+**Company Profile**: Vantara Commerce
+- **Industry**: Retail E-Commerce
+- **Scale**: 45 AI-using teams, 180M monthly decisions
+- **AI Spend**: $3.8M annually across 4 vendors (OpenAI, Anthropic, Google Vertex, Cohere)
+- **Challenge**: No central governance, cost attribution, or performance monitoring
+
+### Four Complete Examples
+
+| Module | Enterprise Challenge | Briefcase AI Solution |
+|--------|---------------------|----------------------|
+| **[01. Agent Discovery](vantara-briefcase-demo/01_agent_discovery/)** | No central AI agent registry | Self-populating discovery with shadow AI detection |
+| **[02. Cost Attribution](vantara-briefcase-demo/02_cost_attribution/)** | $3.8M bill with no team breakdown | Per-decision cost tracking and optimization |
+| **[03. Peak Season Drift](vantara-briefcase-demo/03_peak_season_drift/)** | Model regressions during Q4 | Instant root cause analysis and rollback guidance |
+| **[04. Governance Report](vantara-briefcase-demo/04_governance_report/)** | 21-day manual compliance reports | Automated regulatory risk analysis in <1 second |
+
+### Quick Start - Vantara Demo
+
+```bash
+# Run the complete Vantara Commerce demo
+cd vantara-briefcase-demo
+
+# Agent discovery - find all AI agents across 45 teams
+python 01_agent_discovery/example.py
+
+# Cost attribution - track $3.8M annual spend by team and decision
+python 02_cost_attribution/example.py
+
+# Peak season drift - detect Q4 model performance issues
+python 03_peak_season_drift/example.py
+
+# Governance reporting - generate compliance report in <1 second
+python 04_governance_report/example.py
+```
+
+### Key Demonstrated Benefits
+
+**Operational Impact**:
+- **Discovery**: Continuous agent registry vs quarterly manual surveys
+- **Cost Management**: Real-time spend tracking vs monthly invoice reconciliation
+- **Incident Response**: 1-minute vs 2-5 day root cause analysis
+- **Compliance**: 1-second vs 21-day report generation (672 engineer-hours saved)
+
+**Financial Impact**:
+- **Cost Optimization**: $609K annual savings from model right-sizing recommendations
+- **Risk Mitigation**: Early detection of shadow AI and compliance gaps
+- **Revenue Protection**: Rapid resolution of peak season performance issues
+
+### Interactive Exploration
+
+Each example includes both Python scripts and Jupyter notebooks:
+
+```bash
+# Launch interactive analysis
+jupyter notebook vantara-briefcase-demo/01_agent_discovery/agent_discovery_walkthrough.ipynb
+```
+
+The Vantara Commerce demo provides a complete blueprint for implementing enterprise AI governance in high-volume, multi-team environments. See [vantara-briefcase-demo/README.md](vantara-briefcase-demo/README.md) for detailed documentation.
+
+---
+
 *Copyright 2026 Briefcase AI. All rights reserved.*
