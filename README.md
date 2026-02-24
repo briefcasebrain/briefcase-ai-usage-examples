@@ -32,6 +32,43 @@
 
 ---
 
+## Quick Setup
+
+### Option 1: Docker (Recommended)
+
+**Easiest setup with guaranteed compatibility:**
+
+```bash
+# Build and test the environment
+./docker-run.sh build
+./docker-run.sh test
+
+# Run demos
+./docker-run.sh run
+
+# Start Jupyter notebooks
+./docker-run.sh jupyter  # Available at http://localhost:8889
+```
+
+### Option 2: Local Setup
+
+**For local development:**
+
+```bash
+# Run the setup script (Python 3.11/3.12 recommended)
+./setup.sh
+
+# Activate environment
+source briefcase-ai-demos-env/bin/activate
+```
+
+The setup script will:
+- Verify Python 3.8+ installation (warns about 3.14+ compilation needs)
+- Create a virtual environment
+- Install briefcase-ai SDK and all dependencies
+- Configure Jupyter kernel
+- Test the installation
+
 ## Quick Start
 
 ### Choose Your Industry Path

@@ -1,7 +1,7 @@
 # Vantara Commerce Briefcase AI Demo Requirements
 
 # Core demo requirements
-briefcase-ai>=2.0.0  # Briefcase AI SDK for decision tracking and governance
+briefcase-ai  # Briefcase AI SDK for decision tracking and governance
 
 # Data analysis and visualization (for notebooks)
 pandas>=1.5.0
@@ -21,5 +21,5 @@ scipy>=1.10.0
 pytest>=7.0.0
 black>=22.0.0
 
-# Note: The demo includes fallback mock implementations if briefcase-ai is not available
+# Note: The demo requires the real briefcase-ai SDK to demonstrate actual instrumentation
 # Contact support@briefcasebrain.com for Briefcase AI SDK access and licensing

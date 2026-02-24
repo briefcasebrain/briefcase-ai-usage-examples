@@ -1,0 +1,45 @@
+# Docker ignore file for Briefcase AI demos
+
+# Virtual environments
+*venv*
+*.env
+__pycache__/
+*.py[cod]
+*$py.class
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+
+# Test outputs
+.pytest_cache/
+.coverage
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Docker files themselves (we copy them manually)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Output directory (we'll mount it as volume)
+output/

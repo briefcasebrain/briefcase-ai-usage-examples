@@ -1,0 +1,10 @@
+# Briefcase AI Demo Requirements for Docker
+# Optimized for Python 3.11 compatibility
+
+# Core SDK - the star of the show
+briefcase-ai
+
+# Jupyter notebook support
+jupyter>=1.0.0
+ipykernel>=6.0.0
+notebook>=6.5.0

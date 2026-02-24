@@ -27,7 +27,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List
 
 # Add shared module to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
 
 try:
     import backend
@@ -182,12 +182,14 @@ def simulate_governance_decisions() -> List[DecisionSnapshot]:
             "report_generation_method": "automated_briefcase_ai"
         }
 
-        # Create decision snapshot
-        decision = backend.create_decision_snapshot(
+        # Create decision snapshot using instrumented pattern
+        decision = backend.create_instrumented_decision(
             function_name="governance_decision_tracking",
             inputs=inputs,
             outputs=outputs,
-            metadata=metadata
+            metadata=metadata,
+            vendor=model_info["vendor"],
+            model=model_info["model"]
         )
 
         decisions.append(decision)
@@ -395,7 +397,10 @@ def main():
     # Store all decisions in backend
     stored_decision_ids = []
     for decision in governance_decisions:
-        decision_id = backend_instance.save_decision(decision)
+        if hasattr(backend_instance, 'save_decision'):
+            decision_id = backend_instance.save_decision(decision)
+        else:
+            decision_id = backend_instance.store_decision(decision)
         stored_decision_ids.append(decision_id)
         team = decision.inputs[0].value
         agent = decision.inputs[1].value

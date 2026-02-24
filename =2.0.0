@@ -1,0 +1,45 @@
+Collecting briefcase-ai
+  Using cached briefcase_ai-2.1.30.tar.gz (199 kB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting opentelemetry-api>=1.20.0 (from briefcase-ai)
+  Using cached opentelemetry_api-1.39.1-py3-none-any.whl.metadata (1.5 kB)
+Collecting opentelemetry-sdk>=1.20.0 (from briefcase-ai)
+  Using cached opentelemetry_sdk-1.39.1-py3-none-any.whl.metadata (1.5 kB)
+Collecting requests>=2.31.0 (from briefcase-ai)
+  Using cached requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+Collecting importlib-metadata<8.8.0,>=6.0 (from opentelemetry-api>=1.20.0->briefcase-ai)
+  Using cached importlib_metadata-8.7.1-py3-none-any.whl.metadata (4.7 kB)
+Collecting typing-extensions>=4.5.0 (from opentelemetry-api>=1.20.0->briefcase-ai)
+  Using cached typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting zipp>=3.20 (from importlib-metadata<8.8.0,>=6.0->opentelemetry-api>=1.20.0->briefcase-ai)
+  Using cached zipp-3.23.0-py3-none-any.whl.metadata (3.6 kB)
+Collecting opentelemetry-semantic-conventions==0.60b1 (from opentelemetry-sdk>=1.20.0->briefcase-ai)
+  Using cached opentelemetry_semantic_conventions-0.60b1-py3-none-any.whl.metadata (2.4 kB)
+Collecting charset_normalizer<4,>=2 (from requests>=2.31.0->briefcase-ai)
+  Using cached charset_normalizer-3.4.4-cp314-cp314-macosx_10_13_universal2.whl.metadata (37 kB)
+Collecting idna<4,>=2.5 (from requests>=2.31.0->briefcase-ai)
+  Using cached idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+Collecting urllib3<3,>=1.21.1 (from requests>=2.31.0->briefcase-ai)
+  Using cached urllib3-2.6.3-py3-none-any.whl.metadata (6.9 kB)
+Collecting certifi>=2017.4.17 (from requests>=2.31.0->briefcase-ai)
+  Using cached certifi-2026.1.4-py3-none-any.whl.metadata (2.5 kB)
+Using cached opentelemetry_api-1.39.1-py3-none-any.whl (66 kB)
+Using cached importlib_metadata-8.7.1-py3-none-any.whl (27 kB)
+Using cached opentelemetry_sdk-1.39.1-py3-none-any.whl (132 kB)
+Using cached opentelemetry_semantic_conventions-0.60b1-py3-none-any.whl (219 kB)
+Using cached requests-2.32.5-py3-none-any.whl (64 kB)
+Using cached charset_normalizer-3.4.4-cp314-cp314-macosx_10_13_universal2.whl (207 kB)
+Using cached idna-3.11-py3-none-any.whl (71 kB)
+Using cached urllib3-2.6.3-py3-none-any.whl (131 kB)
+Using cached certifi-2026.1.4-py3-none-any.whl (152 kB)
+Using cached typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+Using cached zipp-3.23.0-py3-none-any.whl (10 kB)
+Building wheels for collected packages: briefcase-ai
+  Building wheel for briefcase-ai (pyproject.toml): started
+  Building wheel for briefcase-ai (pyproject.toml): finished with status 'error'
+Failed to build briefcase-ai

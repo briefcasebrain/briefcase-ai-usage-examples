@@ -23,10 +23,23 @@ This demo shows how Briefcase AI solves the enterprise AI governance problem for
 pip install -r requirements.txt
 
 ## Run Any Example
+
+### Command Line Execution
+```bash
 python vantara-briefcase-demo/01_agent_discovery/example.py
 python vantara-briefcase-demo/02_cost_attribution/example.py
 python vantara-briefcase-demo/03_peak_season_drift/example.py
 python vantara-briefcase-demo/04_governance_report/example.py
+```
+
+### Interactive Jupyter Notebooks
+For detailed analysis with visualizations and step-by-step walkthroughs:
+```bash
+cd vantara-briefcase-demo/01_agent_discovery && jupyter notebook agent_discovery_walkthrough.ipynb
+cd vantara-briefcase-demo/02_cost_attribution && jupyter notebook cost_attribution_walkthrough.ipynb
+cd vantara-briefcase-demo/03_peak_season_drift && jupyter notebook peak_season_drift_walkthrough.ipynb
+cd vantara-briefcase-demo/04_governance_report && jupyter notebook governance_report_walkthrough.ipynb
+```
 
 No external infrastructure required. All data stored in-memory via SQLite.
 
@@ -80,6 +93,8 @@ SHADOW AI — PREVIOUSLY UNKNOWN AGENTS (2):
 
 **Time Savings**: Continuous real-time discovery vs quarterly manual surveys
 
+**Interactive Analysis**: [agent_discovery_walkthrough.ipynb](01_agent_discovery/agent_discovery_walkthrough.ipynb) provides detailed visualizations and step-by-step analysis
+
 ## Example 02: Cost Attribution
 
 **Problem**: $3.8M annual AI bill with no team-level breakdown
@@ -102,6 +117,8 @@ At estimated volume → saves $609,094/year
 
 **Time Savings**: Real-time spend tracking vs waiting for monthly invoices
 
+**Interactive Analysis**: [cost_attribution_walkthrough.ipynb](02_cost_attribution/cost_attribution_walkthrough.ipynb) provides detailed cost analysis visualizations and optimization insights
+
 ## Example 03: Peak Season Drift Detection
 
 **Problem**: Q4 model changes cause performance regressions with no fast root cause analysis
@@ -122,6 +139,8 @@ Time to identify root cause: < 1 minute vs 2-5 days manual correlation
 ```
 
 **Time Savings**: 1 minute vs 2-5 days for root cause analysis
+
+**Interactive Analysis**: [peak_season_drift_walkthrough.ipynb](03_peak_season_drift/peak_season_drift_walkthrough.ipynb) provides detailed performance analysis and drift detection visualizations
 
 ## Example 04: Governance Report
 
@@ -148,6 +167,8 @@ With Briefcase AI: < 1 second, 0 engineers
 ```
 
 **Time Savings**: < 1 second vs 21 days (672 engineer-hours saved per report)
+
+**Interactive Analysis**: [governance_report_walkthrough.ipynb](04_governance_report/governance_report_walkthrough.ipynb) provides comprehensive compliance analysis and regulatory risk assessment
 
 ## Key Benefits Demonstrated
 

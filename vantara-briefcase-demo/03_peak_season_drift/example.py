@@ -20,13 +20,12 @@ Demonstrates:
 
 import sys
 import os
-import uuid
 import random
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Tuple
 
 # Add shared module to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
 
 try:
     import backend
@@ -221,12 +220,14 @@ def generate_team_decisions(
             "peak_season": True
         }
 
-        # Create decision snapshot
-        decision = backend.create_decision_snapshot(
+        # Create decision snapshot using instrumented pattern
+        decision = backend.create_instrumented_decision(
             function_name="peak_season_model_execution",
             inputs=inputs,
             outputs=outputs,
-            metadata=metadata
+            metadata=metadata,
+            vendor=vendor,
+            model=model
         )
 
         decisions.append(decision)
@@ -482,7 +483,10 @@ def main():
     # Store all decisions in backend
     stored_decision_ids = []
     for decision in drift_decisions:
-        decision_id = backend_instance.save_decision(decision)
+        if hasattr(backend_instance, 'save_decision'):
+            decision_id = backend_instance.save_decision(decision)
+        else:
+            decision_id = backend_instance.store_decision(decision)
         stored_decision_ids.append(decision_id)
         team = decision.inputs[0].value
         model_version = decision.inputs[4].value

@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List
 
 # Add shared module to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
 
 try:
     import backend

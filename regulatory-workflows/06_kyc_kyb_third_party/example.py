@@ -23,7 +23,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Add shared module to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
 
 try:
     import backend
@@ -278,7 +278,9 @@ def main():
     try:
         retrieved_decision = db_backend.load_decision(stored_decision_id)
         if retrieved_decision:
-            backend.print_audit_summary(retrieved_decision)
+            backend.print_audit_summary(stored_decision_id, "Decision retrieved from audit trail")
+            print(f"Function: {getattr(retrieved_decision, 'function_name', 'N/A')}")
+            print(f"Decision ID: {stored_decision_id}")
         else:
             print("ERROR: Failed to retrieve decision from backend")
             sys.exit(1)
