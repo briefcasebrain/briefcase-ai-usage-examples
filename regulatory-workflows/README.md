@@ -56,9 +56,9 @@ Each example is independently executable:
 
 ```bash
 # Run any single example
-python briefcase-workflow-examples/01_credit_underwriting/example.py
-python briefcase-workflow-examples/02_ofac_sanctions/example.py
-python briefcase-workflow-examples/14_algo_trading_surveillance/example.py
+python 01_credit_underwriting/example.py
+python 02_ofac_sanctions/example.py
+python 14_algo_trading_surveillance/example.py
 
 # Or navigate to specific directory
 cd 03_fraud_reg_e

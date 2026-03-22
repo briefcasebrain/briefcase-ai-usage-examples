@@ -57,15 +57,15 @@ The example simulates two waves of model deployments:
 Analysis period: Nov 1 – Dec 5 (Black Friday / Cyber Monday window)
 
 SEARCH RANKING — MODEL VERSION CHANGE DETECTED:
-  Pre-BFCM  (v8.2.1-stable): mean confidence 0.883, fallback rate 0%
-  Post-BFCM (v8.3.0-bfcm):   mean confidence 0.508, fallback rate 33%
-  Δ confidence: -0.375 (-42% degradation)
+  Pre-BFCM  (v8.2.1-stable): mean confidence 0.893, fallback rate 0%
+  Post-BFCM (v8.3.0-bfcm):   mean confidence 0.521, fallback rate 33%
+  Δ confidence: -0.372 (-42% degradation)
   Root cause: model_version changed from v8.2.1-stable → v8.3.0-bfcm on Nov 28
 
 PRODUCT RECOMMENDATIONS — MODEL VERSION CHANGE DETECTED:
-  Pre-BFCM  (recs-v12.0):      mean predicted CTR 0.0731
-  Post-BFCM (recs-v12.1-bfcm): mean predicted CTR 0.0309
-  Δ CTR prediction: -0.0422 (-58% degradation)
+  Pre-BFCM  (recs-v12.0):      mean predicted CTR 0.0772
+  Post-BFCM (recs-v12.1-bfcm): mean predicted CTR 0.0374
+  Δ CTR prediction: -0.0398 (-52% degradation)
   Root cause: model_version changed from recs-v12.0 → recs-v12.1-bfcm on Nov 28
 
 WITHOUT BRIEFCASE AI:
@@ -82,7 +82,7 @@ WITH BRIEFCASE AI:
 
 ### Performance Degradation Analysis
 - **Search Ranking**: 42% confidence degradation, 33% fallback rate increase
-- **Recommendations**: 58% CTR prediction degradation
+- **Recommendations**: 52% CTR prediction degradation
 - **Root Cause**: Model version changes deployed on Nov 28
 - **Resolution**: Rollback to v8.2.1-stable and recs-v12.0
 

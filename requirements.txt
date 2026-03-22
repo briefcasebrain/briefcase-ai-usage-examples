@@ -1,7 +1,7 @@
 # Requirements for Briefcase AI Regulatory Workflow Examples
 
 # Core dependency - Briefcase AI SDK
-briefcase-ai>=1.0.0
+briefcase-ai>=3.0.0
 
 # Optional: Jupyter notebook support for interactive examples
 jupyter>=1.0.0

@@ -106,7 +106,7 @@ async def run_demo(args):
         print(f"   [!!] STOCHASTIC FAILURE DETECTED — same input, different output")
 
     # ── Section 4: Confidence Routing ──
-    print("\n>> Section 4: Confidence Routing (InternalRouter)")
+    print("\n>> Section 4: Confidence Routing (ConfidenceRouter)")
     routing = await demo_routing()
     for r in routing:
         flag = "  <-- flagged for review" if r["action"] == "human_review" else ""

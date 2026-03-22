@@ -146,7 +146,7 @@ The same report is summarized twice at `temperature=0.7`. The fixture pair produ
 
 ### Section 4: Confidence-Based Routing
 
-`InternalRouter(confidence_threshold=0.85)` reads the `Output.confidence` from each stored `DecisionSnapshot` and routes:
+`ConfidenceRouter(confidence_threshold=0.85)` reads the `Output.confidence` from each stored `DecisionSnapshot` and routes:
 
 | Report | Confidence | Action | Why |
 |--------|-----------|--------|-----|
@@ -213,7 +213,7 @@ The Rust-powered `Sanitizer` redacts all of them:
    Outputs match: False | Drift score: 0.686
    [!!] STOCHASTIC FAILURE DETECTED — same input, different output
 
->> Section 4: Confidence Routing (InternalRouter)
+>> Section 4: Confidence Routing (ConfidenceRouter)
    report_003 (conf=0.62) -> action=human_review  <-- flagged for review
    report_001 (conf=0.93) -> action=auto
 
@@ -246,7 +246,7 @@ Four Jupyter notebooks walk through each capability interactively with markdown 
 |----------|-------|---------------------|
 | **01 — Pipeline & Decision Tracking** | Instrumentation | `@capture` decorator, `briefcase.setup()` config, `detect_hardware()` metadata, `DecisionSnapshot` inspection, GPT-4o vs Claude Sonnet comparison, batch processing, content-hash versioning |
 | **02 — Evaluation & Guardrails** | Structured validation | Run each guardrail individually on good vs bad reports, see `Effect.ALLOW`/`DENY` decisions with metadata, compose into `Scorecard`, full model comparison table, per-report calibration analysis, `CostCalculator` token tracking |
-| **03 — Error Reproduction & Triage** | Failure handling | Stochastic runs with drift detection, `emit_drift_detected` events, `ReplayEngine` validation, `InternalRouter` routing with `emit_low_confidence` events, `Sanitizer` PII redaction, event bus inspection |
+| **03 — Error Reproduction & Triage** | Failure handling | Stochastic runs with drift detection, `emit_drift_detected` events, `ReplayEngine` validation, `ConfidenceRouter` routing with `emit_low_confidence` events, `Sanitizer` PII redaction, event bus inspection |
 | **04 — Data Lineage & Compliance** | Auditability | `PromptValidationEngine` reference checking, version-linked decisions, `DriftCalculator` with event emission, `MockLakeFSClient` integration pattern, SOC2 compliance reporting |
 
 ### Running Notebooks
@@ -281,7 +281,7 @@ pytest tests/ -v
 |-----------|---------------|-------|
 | `test_pipeline.py` | `DecisionSnapshot` creation, storage, retrieval, data versioning, model info, multi-model support, hardware metadata | 7 |
 | `test_guardrails.py` | `FactualAccuracyEnv` scoring, `ConfidenceCalibrationEnv` allow/deny, `CrossDocConsistencyEnv` address mismatch detection, same-model consistency | 6 |
-| `test_replay.py` | Stochastic output mismatch, deterministic match, `InternalRouter` routing for low/high confidence, `Sanitizer` SSN and phone redaction | 6 |
+| `test_replay.py` | Stochastic output mismatch, deterministic match, `ConfidenceRouter` routing for low/high confidence, `Sanitizer` SSN and phone redaction | 6 |
 | `test_lineage.py` | Version hash uniqueness, `data_version` tag presence, amended report produces different summary, all reports versioned | 4 |
 | `test_validation.py` | `EvidenceExtractor` reference extraction, `EvidenceResolver` error for missing reports, `PromptValidationEngine` pass/fail | 7 |
 | `test_events.py` | `InMemoryEventBus` collection, `emit_low_confidence`, `emit_drift_detected`, event field validation | 4 |
@@ -305,14 +305,14 @@ criminal-evidence-workflow/
 │   │   ├── report_005.txt             #   Earlier theft at same store
 │   │   └── *_ground_truth.json        #   Key facts, entities, expected keywords (5 files)
 │   │
-│   └── fixtures/                      # 20+ pre-generated LLM output + validation scenarios
+│   └── fixtures/                      # 21 pre-generated LLM output + validation scenarios
 │       ├── report_001_gpt-4o.json             # temp=0.0, conf=0.93
 │       ├── report_001_claude-sonnet.json       # temp=0.0, conf=0.90
 │       ├── report_001_gpt-4o_t0.7.json        # temp=0.7, conf=0.87
 │       ├── report_001_gpt-4o_t0.7_replay.json # replay variant (different output)
 │       ├── report_001_amended_gpt-4o.json     # summary of amended report
 │       ├── report_003_gpt-4o.json             # conf=0.62 (low — conflicting witnesses)
-│       └── ...                                # 5 reports x 2 models x 2 temps
+│       └── ...                                # 5 reports x 2 models, partial temp=0.7 coverage
 │
 ├── src/
 │   ├── __init__.py
@@ -321,7 +321,7 @@ criminal-evidence-workflow/
 │   ├── pipeline.py                    # @capture + DecisionSnapshot + detect_hardware()
 │   ├── validation.py                  # PromptValidationEngine + EvidenceExtractor/Resolver
 │   ├── evaluation.py                  # GuardrailPipeline + Scorecard + CostCalculator
-│   ├── triage.py                      # ReplayEngine + InternalRouter + event emission
+│   ├── triage.py                      # ReplayEngine + ConfidenceRouter + event emission
 │   ├── sanitization.py                # Sanitizer PII redaction
 │   ├── lineage.py                     # DataRef versioning + ExternalDataTracker + events + SOC2
 │   └── guardrails/
@@ -432,7 +432,7 @@ Every SDK module listed below is instantiated and called with real arguments in 
 | `briefcase.events.types` | `BriefcaseEvent` dataclass | `config.py` |
 | `briefcase.guardrails` | `GuardrailEnv` protocol, `EvalRequest`, `EvalResult`, `Effect.ALLOW`/`DENY` | `guardrails/*.py` |
 | `briefcase.guardrails` | `GuardrailPipeline`, `PipelineMode.ALL` | `evaluation.py` |
-| `briefcase.routing` | `InternalRouter(confidence_threshold)`, `.route()` → `RoutingDecision` | `triage.py` |
+| `briefcase.routing` | `BaseRouter`, `RoutingDecision` — extended by local `ConfidenceRouter` | `triage.py` |
 | `briefcase.external_data` | `ExternalDataTracker`, `SnapshotPolicy`, `SnapshotFrequency.ON_CHANGE` | `lineage.py` |
 | `briefcase.compliance.reports.soc2` | `SOC2ReportGenerator`, `.evaluate()` → `ComplianceReport`, `.to_markdown()` | `lineage.py` |
 

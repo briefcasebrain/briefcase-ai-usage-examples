@@ -68,7 +68,7 @@ Build real-time trading surveillance for market manipulation detection with FINR
 
 1. **Navigate to any example directory:**
    ```bash
-   cd briefcase-workflow-examples/01_credit_underwriting/
+   cd 01_credit_underwriting/
    ```
 
 2. **Start Jupyter:**

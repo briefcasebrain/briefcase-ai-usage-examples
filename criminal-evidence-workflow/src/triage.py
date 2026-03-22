@@ -1,4 +1,4 @@
-"""Error reproduction and triage: ReplayEngine + InternalRouter.
+"""Error reproduction and triage: ReplayEngine + ConfidenceRouter.
 
 Demonstrates:
 1. Deterministic replay catching stochastic failures

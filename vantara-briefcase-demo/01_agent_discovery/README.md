@@ -53,7 +53,7 @@ AGENTS BY TEAM (sorted alphabetically):
   customer-support-ai           cx-triage-bot                 anthropic/claude-3-5-sonnet production   instrumented
   ...
 
-ESTIMATED DAILY AI DECISIONS ACROSS FLEET: 12,607,500
+ESTIMATED DAILY AI DECISIONS ACROSS FLEET: 12,572,500
 
 SHADOW AI — PREVIOUSLY UNKNOWN AGENTS (2):
   [!] title-enricher-exp  (catalog-enrichment)    — first seen 2024-01-15 — environment: experiment
@@ -73,7 +73,7 @@ DISCOVERY METHOD:
 
 ### Discovery Statistics
 - **10 agents** discovered across all 10 teams
-- **12.6M daily decisions** across the AI fleet
+- **12.5M daily decisions** across the AI fleet
 - **2 shadow AI agents** previously unknown to governance
 - **4 AI vendors** in use (OpenAI, Anthropic, Cohere, Google Vertex)
 
