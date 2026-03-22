@@ -5,7 +5,7 @@ Vantara Commerce (e-commerce) and regulatory workflow demonstrations.
 
 This module requires the real Briefcase AI SDK to be installed.
 
-For SDK access and licensing, contact: support@briefcasebrain.com
+For SDK access and licensing, contact: support@briefcaseai.org
 """
 
 import sys
@@ -14,18 +14,21 @@ from datetime import datetime
 
 # Import the real SDK - examples require this to be installed
 try:
-    import briefcase_ai
+    import briefcase
+    from briefcase import DecisionSnapshot, Input, Output, ModelParameters, init, init_with_config, is_initialized
+    from briefcase.storage import SqliteBackend
 
-    # Use the real SDK classes - no fallback
-    DecisionSnapshot = briefcase_ai.DecisionSnapshot
-    Input = briefcase_ai.Input
-    Output = briefcase_ai.Output
-    SqliteBackend = briefcase_ai.SqliteBackend
-    CostCalculator = briefcase_ai.CostCalculator if hasattr(briefcase_ai, 'CostCalculator') else None
-    DriftCalculator = briefcase_ai.DriftCalculator if hasattr(briefcase_ai, 'DriftCalculator') else None
+    try:
+        from briefcase.cost import CostCalculator
+    except ImportError:
+        CostCalculator = None
+
+    try:
+        from briefcase.drift import DriftCalculator
+    except ImportError:
+        DriftCalculator = None
 
     print("SUCCESS: Using real Briefcase AI SDK")
-    USING_REAL_SDK = True
 
 except ImportError as e:
     print(f"ERROR: Briefcase AI SDK is required for demos")
@@ -35,7 +38,7 @@ except ImportError as e:
     print("  pip install briefcase-ai")
     print("")
     print("For enterprise licensing and support:")
-    print("  Contact: support@briefcasebrain.com")
+    print("  Contact: support@briefcaseai.org")
     sys.exit(1)
 
 # Vantara Commerce company data
@@ -79,10 +82,9 @@ def get_backend():
     """
     # Initialize the real SDK if not already done
     try:
-        if hasattr(briefcase_ai, 'init') and hasattr(briefcase_ai, 'is_initialized'):
-            if not briefcase_ai.is_initialized():
-                briefcase_ai.init()
-                print("INFO: Initialized real Briefcase AI SDK")
+        if not is_initialized():
+            init()
+            print("INFO: Initialized real Briefcase AI SDK")
     except Exception as e:
         print(f"INFO: Could not initialize SDK: {e}")
 
@@ -221,26 +223,10 @@ def create_instrumented_decision(
 
     # Add model metadata
     if vendor or model:
-        try:
-            # Try to use ModelParameters if available
-            if hasattr(briefcase_ai, 'ModelParameters'):
-                params = briefcase_ai.ModelParameters(model or "unknown")
-                if vendor:
-                    params.with_provider(vendor)
-                decision.with_model_parameters(params)
-            else:
-                # Fallback to regular inputs
-                if vendor:
-                    decision.add_input(Input("vendor", vendor, "string"))
-                if model:
-                    decision.add_input(Input("model", model, "string"))
-        except Exception as e:
-            print(f"INFO: Could not set model parameters: {e}")
-            # Fallback to regular inputs
-            if vendor:
-                decision.add_input(Input("vendor", vendor, "string"))
-            if model:
-                decision.add_input(Input("model", model, "string"))
+        params = ModelParameters(model or "unknown")
+        if vendor:
+            params.with_provider(vendor)
+        decision.with_model_parameters(params)
 
     # Add metadata
     if metadata:
@@ -268,17 +254,17 @@ def create_decision_snapshot(
     DEPRECATED: Use create_instrumented_decision() for better SDK integration.
     """
     # Create decision snapshot with function name
-    decision = briefcase_ai.DecisionSnapshot(function_name)
+    decision = DecisionSnapshot(function_name)
 
     # Add inputs using SDK API
     for name, value in inputs.items():
         type_str = input_types.get(name, "string") if input_types else "string"
-        decision.add_input(briefcase_ai.Input(name, str(value), type_str))
+        decision.add_input(Input(name, str(value), type_str))
 
     # Add outputs using SDK API
     for name, value in outputs.items():
         type_str = output_types.get(name, "string") if output_types else "string"
-        output = briefcase_ai.Output(name, str(value), type_str)
+        output = Output(name, str(value), type_str)
         # Add confidence if available in metadata
         if f"{name}_confidence" in metadata:
             try:
@@ -293,7 +279,7 @@ def create_decision_snapshot(
             try:
                 decision.add_tag(key, str(value))
             except Exception:
-                decision.add_input(briefcase_ai.Input(key, str(value), "metadata"))
+                decision.add_input(Input(key, str(value), "metadata"))
 
     return decision
 
@@ -379,9 +365,9 @@ def validate_regulatory_completeness(decision: DecisionSnapshot, required_fields
 
 # Make classes and functions available for import
 __all__ = [
-    'briefcase_ai', 'DecisionSnapshot', 'Input', 'Output', 'SqliteBackend', 'CostCalculator', 'DriftCalculator',
+    'briefcase', 'DecisionSnapshot', 'Input', 'Output', 'ModelParameters', 'SqliteBackend', 'CostCalculator', 'DriftCalculator',
     'get_backend', 'compute_cost', 'print_audit_summary', 'format_demo_answer', 'format_examiner_response',
     'create_decision_snapshot', 'create_instrumented_decision', 'simulate_model_drift_detection',
-    'validate_regulatory_completeness', 'USING_REAL_SDK',
+    'validate_regulatory_completeness',
     'COMPANY', 'TEAMS', 'CUSTOMER_SEGMENTS', 'VENDOR_PRICING'
 ]

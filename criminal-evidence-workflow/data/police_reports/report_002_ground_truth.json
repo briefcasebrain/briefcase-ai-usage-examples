@@ -1,0 +1,26 @@
+{
+  "report_id": "report_002",
+  "incident_type": "DUI",
+  "date": "2024-04-02",
+  "location": "Broadway and 14th Street, Oakland, CA 94612",
+  "key_facts": [
+    "driver traveling 45 mph in 25 mph zone",
+    "vehicle weaving between lanes",
+    "ran red light at Broadway and 14th Street",
+    "nearly struck pedestrian in crosswalk",
+    "PAS test result 0.14% BAC at scene",
+    "Intoxilyzer results 0.13% and 0.12% BAC at headquarters",
+    "driver failed all three SFSTs",
+    "vehicle impounded with 30-day hold"
+  ],
+  "entities": {
+    "officers": ["Ofc. K. Thompson #5523", "Ofc. M. Davis #5587"],
+    "suspects": ["Robert James Fitzgerald"],
+    "witnesses": ["Sarah Kim"],
+    "vehicles": ["2019 BMW 330i, black, plate 8ABC123"],
+    "evidence": ["PAS test result", "Intoxilyzer 8000 results", "body-worn camera footage", "dash camera footage"],
+    "locations": ["Broadway and 14th Street, Oakland, CA", "Jack London Square", "2847 Telegraph Avenue Apt 4B"]
+  },
+  "pii_fields": ["SSN: 478-93-6152", "DOB: 11/03/1985", "DL: D4829156", "phone: (510) 555-4271", "email: rjfitzgerald@coastlinefin.com", "spouse phone: (510) 555-8734", "spouse email: maria.fitzgerald@gmail.com"],
+  "expected_summary_keywords": ["DUI", "traffic stop", "BAC", "0.14%", "field sobriety", "impounded", "red light", "pedestrian"]
+}

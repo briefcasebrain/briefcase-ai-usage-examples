@@ -1,0 +1,10 @@
+{
+  "report_id": "report_004",
+  "model": "claude-sonnet",
+  "provider": "anthropic",
+  "summary": "A coordinated retail theft occurred at Bay Area Electronics (3200 Lakeshore Avenue, Oakland) on April 18, 2024. The incident involved a two-person team employing a distraction-and-grab methodology. The first suspect, a white female aged 25-30 with blonde hair and a green military-style jacket, diverted employee Kevin Marsh's attention in the audio section. Simultaneously, her accomplice — a white male, approximately 30 years old, shaved head with a goatee, wearing a gray sweatshirt — used what appears to be a magnetic security key to unlock the premium device display case. Five smartphones were stolen: three iPhone 15 Pro Max units and two Samsung Galaxy S24 Ultra units, representing a total loss of $6,195. The suspects used a signal-blocking lined bag to circumvent electronic article surveillance and escaped via the rear emergency exit to Rand Avenue, departing northbound in a silver SUV with a partial plate of 7M. Store manager Henry Yamamoto identified this as the second significant theft within 30 days, linking it to Case #2024-00298 and indicating a possible organized retail crime ring. Investigation continues under Detective A. Morales with the case referred to the Organized Retail Crime Task Force.",
+  "confidence": 0.87,
+  "token_usage": {"prompt_tokens": 1876, "completion_tokens": 295, "total_tokens": 2171},
+  "retrieval_context": ["chunk_1: Mr. Yamamoto stated that at approximately 1405 hours, two individuals entered the store...", "chunk_2: Security camera footage reviewed on scene shows the male suspect removing three Apple iPhone 15 Pro Max units..."],
+  "temperature": 0.0
+}

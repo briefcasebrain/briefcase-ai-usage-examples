@@ -20,9 +20,9 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional, Tuple
 import json
 
-# Import the backend which now handles real SDK vs mock fallback
+# Import the backend which handles real SDK setup
 import backend
-from backend import briefcase_ai, Input, Output, DecisionSnapshot, USING_REAL_SDK
+from backend import Input, Output, DecisionSnapshot
 
 
 class SearchRankingModel:
@@ -71,18 +71,10 @@ class SearchRankingModel:
         # Calculate execution time
         execution_time_ms = (time.time() - start_time) * 1000
 
-        # Add execution metadata if using real SDK
-        if USING_REAL_SDK:
-            try:
-                decision.with_execution_time(execution_time_ms)
-                decision.add_tag("environment", "production")
-                decision.add_tag("model_version", self.version)
-            except AttributeError:
-                # Fallback if methods don't exist
-                if USING_REAL_SDK:
-                    decision.add_input(Input("execution_time_ms", str(execution_time_ms), "float"))
-                else:
-                    decision.add_input(Input("execution_time_ms", execution_time_ms))
+        # Add execution metadata
+        decision.with_execution_time(execution_time_ms)
+        decision.add_tag("environment", "production")
+        decision.add_tag("model_version", self.version)
 
         # Add outputs to decision
         outputs = {
@@ -93,21 +85,15 @@ class SearchRankingModel:
         }
 
         for name, value in outputs.items():
-            if USING_REAL_SDK:
-                decision.add_output(Output(name, str(value), "string"))
-            else:
-                decision.add_output(Output(name, value))
+            decision.add_output(Output(name, str(value), "string"))
 
         # Store the decision using the backend
         backend_instance = backend.get_backend()
-        if hasattr(backend_instance, 'save_decision'):
-            decision_id = backend_instance.save_decision(decision)
-        else:
-            decision_id = backend_instance.store_decision(decision)
+        decision_id = backend_instance.save_decision(decision)
 
         # Add decision tracking metadata to results
         results["decision_id"] = decision_id
-        results["instrumented_with"] = "briefcase_ai"
+        results["instrumented_with"] = "briefcase"
 
         return results
 
@@ -208,12 +194,8 @@ class ProductRecommendationModel:
         output_tokens = self._estimate_output_tokens(recommendations)
 
         # Add token information to decision
-        if USING_REAL_SDK:
-            decision.add_input(Input("input_tokens", str(input_tokens), "integer"))
-            decision.add_input(Input("output_tokens", str(output_tokens), "integer"))
-        else:
-            decision.add_input(Input("input_tokens", input_tokens))
-            decision.add_input(Input("output_tokens", output_tokens))
+        decision.add_input(Input("input_tokens", str(input_tokens), "integer"))
+        decision.add_input(Input("output_tokens", str(output_tokens), "integer"))
 
         # Calculate execution time
         execution_time_ms = (time.time() - start_time) * 1000
@@ -227,17 +209,11 @@ class ProductRecommendationModel:
         }
 
         for name, value in outputs.items():
-            if USING_REAL_SDK:
-                decision.add_output(Output(name, str(value), "string"))
-            else:
-                decision.add_output(Output(name, value))
+            decision.add_output(Output(name, str(value), "string"))
 
         # Store decision
         backend_instance = backend.get_backend()
-        if hasattr(backend_instance, 'save_decision'):
-            decision_id = backend_instance.save_decision(decision)
-        else:
-            decision_id = backend_instance.store_decision(decision)
+        decision_id = backend_instance.save_decision(decision)
 
         # Add tracking metadata
         recommendations["decision_id"] = decision_id
@@ -346,12 +322,8 @@ class DynamicPricingModel:
         input_tokens = random.randint(400, 1200)
         output_tokens = random.randint(100, 400)
 
-        if USING_REAL_SDK:
-            decision.add_input(Input("input_tokens", str(input_tokens), "integer"))
-            decision.add_input(Input("output_tokens", str(output_tokens), "integer"))
-        else:
-            decision.add_input(Input("input_tokens", input_tokens))
-            decision.add_input(Input("output_tokens", output_tokens))
+        decision.add_input(Input("input_tokens", str(input_tokens), "integer"))
+        decision.add_input(Input("output_tokens", str(output_tokens), "integer"))
 
         # Calculate execution time
         execution_time_ms = (time.time() - start_time) * 1000
@@ -365,17 +337,11 @@ class DynamicPricingModel:
         }
 
         for name, value in outputs.items():
-            if USING_REAL_SDK:
-                decision.add_output(Output(name, str(value), "string"))
-            else:
-                decision.add_output(Output(name, value))
+            decision.add_output(Output(name, str(value), "string"))
 
         # Store decision
         backend_instance = backend.get_backend()
-        if hasattr(backend_instance, 'save_decision'):
-            decision_id = backend_instance.save_decision(decision)
-        else:
-            decision_id = backend_instance.store_decision(decision)
+        decision_id = backend_instance.save_decision(decision)
 
         # Add tracking metadata
         pricing_result["decision_id"] = decision_id

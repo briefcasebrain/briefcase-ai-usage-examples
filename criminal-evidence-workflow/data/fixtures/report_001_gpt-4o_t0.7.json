@@ -1,0 +1,10 @@
+{
+  "report_id": "report_001",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "A residential burglary was reported at 1234 Elm Street in Oakland on the morning of March 15, 2024. The suspect appears to have entered through a kitchen window at the back of the house, using some type of prying tool to force it open. The homeowner, David Park, discovered that his laptop computer (an Apple MacBook Pro worth about $2,400), a gold necklace with a diamond pendant worth approximately $1,800, and roughly $350 in cash had been taken. A witness from a neighboring property, Jane Chen, reported seeing a man — tall, wearing a dark hooded sweatshirt — running east from the scene around 2:30 AM. Video from a Ring camera on a nearby home shows someone fitting this general description in the timeframe of the crime. Police collected fingerprints from the window area and are analyzing security footage. The case has been turned over to the detective unit for continued investigation.",
+  "confidence": 0.87,
+  "token_usage": {"prompt_tokens": 1847, "completion_tokens": 243, "total_tokens": 2090},
+  "retrieval_context": ["chunk_1: On March 15, 2024, at approximately 0247 hours, I, Officer R. Martinez, was dispatched to 1234 Elm Street...", "chunk_2: A neighbor, Jane Chen, residing at 1230 Elm Street, reported hearing a loud sound at approximately 0230 hours..."],
+  "temperature": 0.7
+}

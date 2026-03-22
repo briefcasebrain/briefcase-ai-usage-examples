@@ -1,0 +1,24 @@
+{
+  "report_id": "report_001",
+  "incident_type": "burglary",
+  "date": "2024-03-15",
+  "location": "1234 Elm Street, Oakland, CA 94602",
+  "key_facts": [
+    "forced entry through rear kitchen window on east side",
+    "pry marks consistent with flat-head tool on window frame",
+    "Apple MacBook Pro laptop stolen (serial C02G71ABMD6T, value $2,400)",
+    "gold necklace with diamond pendant stolen (value $1,800)",
+    "approximately $350 cash stolen from bedroom dresser",
+    "neighbor witnessed suspect fleeing eastbound toward MLK Jr. Way",
+    "Ring doorbell camera captured suspect at 0225 and 0235 hours"
+  ],
+  "entities": {
+    "officers": ["Ofc. R. Martinez #4471"],
+    "victims": ["David Park"],
+    "witnesses": ["Jane Chen", "Tom Reeves"],
+    "suspects": ["unknown male, approx 5'10\", dark hoodie, blue jeans"],
+    "evidence": ["latent fingerprints on window frame", "Ring doorbell camera footage", "glass fragments"],
+    "locations": ["1234 Elm Street, Oakland, CA", "MLK Jr. Way"]
+  },
+  "expected_summary_keywords": ["burglary", "forced entry", "rear window", "laptop", "jewelry", "necklace", "suspect fleeing", "fingerprints", "security camera", "Ring doorbell"]
+}

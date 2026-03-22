@@ -131,7 +131,7 @@ else
         echo
         echo "The demos require the briefcase-ai SDK to run."
         echo "Options to resolve this:"
-        echo "1. Contact support@briefcasebrain.com for SDK access"
+        echo "1. Contact support@briefcaseai.org for SDK access"
         echo "2. Wait for briefcase-ai to be available via pip"
         echo "3. Set up the briefcase-ai development environment"
         echo
@@ -179,9 +179,9 @@ print_header "Step 4: Verifying installation..."
 if [ "$SDK_INSTALLED" = true ]; then
     print_status "Testing briefcase-ai import..."
     python3 -c "
-import briefcase_ai
+import briefcase
 print(f'SUCCESS: briefcase-ai imported successfully')
-print(f'Available classes: {[attr for attr in dir(briefcase_ai) if not attr.startswith(\"_\")]}')
+print(f'Available classes: {[attr for attr in dir(briefcase) if not attr.startswith(\"_\")]}')
 " || {
         print_warning "briefcase-ai installed but import failed"
         SDK_INSTALLED=false
@@ -229,7 +229,7 @@ import os
 sys.path.append('shared')
 import backend
 print('SUCCESS: Backend module loaded with real SDK')
-print('Real briefcase_ai module available')
+print('Real briefcase module available')
 " && DEMO_TEST_PASSED=true || DEMO_TEST_PASSED=false
 else
     python3 -c "
@@ -285,7 +285,7 @@ if [ "$SDK_INSTALLED" = true ]; then
 else
     echo "2. Install briefcase-ai SDK:"
     echo "   pip install briefcase-ai  # when available"
-    echo "   # OR contact support@briefcasebrain.com"
+    echo "   # OR contact support@briefcaseai.org"
     echo
     echo "3. Then run the demos:"
     echo "   cd vantara-briefcase-demo"

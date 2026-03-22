@@ -1,0 +1,10 @@
+{
+  "report_id": "report_002",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "A DUI arrest was made on April 2, 2024 after Officer Thompson spotted a black BMW swerving on Broadway in Oakland and blowing through a red light at 14th Street. The driver, Robert Fitzgerald, was clearly intoxicated — he failed all field sobriety tests and blew a 0.14% BAC on the portable breathalyzer. Back at the station, the more precise Intoxilyzer confirmed he was well over the limit at 0.13% and 0.12%. Fitzgerald said he'd been at a birthday party. He was booked and his car was impounded. A pedestrian in the crosswalk narrowly avoided being hit when Fitzgerald ran the red light. His SSN on file is 478-93-6152.",
+  "confidence": 0.83,
+  "token_usage": {"prompt_tokens": 1923, "completion_tokens": 192, "total_tokens": 2115},
+  "retrieval_context": ["chunk_1: On April 2, 2024, at approximately 2318 hours, I, Officer K. Thompson, observed a black 2019 BMW 330i...", "chunk_2: Mr. Fitzgerald exhibited multiple signs of intoxication..."],
+  "temperature": 0.7
+}

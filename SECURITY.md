@@ -16,7 +16,7 @@ We take security seriously. If you discover a security vulnerability in the Brie
 
 **Please do not report security vulnerabilities through public GitHub issues, discussions, or pull requests.**
 
-Instead, please send an email to [support@briefcasebrain.com] with the following information:
+Instead, please send an email to [support@briefcaseai.org] with the following information:
 
 - A clear description of the vulnerability
 - Steps to reproduce the issue
@@ -146,7 +146,7 @@ just update
 
 ## Contact
 
-For any security-related questions or concerns that are not vulnerabilities, please contact [support@briefcasebrain.com].
+For any security-related questions or concerns that are not vulnerabilities, please contact [support@briefcaseai.org].
 
 For general questions about the SDK, please use GitHub Issues or Discussions.
 

@@ -31,7 +31,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
 try:
     import backend
     # Import SDK classes from backend (handles mock implementation if SDK not available)
-    from backend import briefcase_ai, DecisionSnapshot, Input, Output, SqliteBackend
+    from backend import briefcase, DecisionSnapshot, Input, Output, SqliteBackend
 except ImportError as e:
     print(f"Error importing required modules: {e}")
     print("Please check the shared backend module is available")
@@ -388,7 +388,7 @@ def main():
 
     # Initialize Briefcase AI SDK
     try:
-        briefcase_ai.init_with_config(2)
+        briefcase.init_with_config(2)
         print("SUCCESS: Briefcase AI SDK initialized")
     except Exception as e:
         print(f"ERROR: Failed to initialize SDK: {e}")

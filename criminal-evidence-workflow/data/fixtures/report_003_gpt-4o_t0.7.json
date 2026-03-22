@@ -1,0 +1,10 @@
+{
+  "report_id": "report_003",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "An assault occurred on April 10, 2024 near the Lake Merritt amphitheater. The victim, Andre Williams, was injured and reported being attacked by two people who tried to rob him. Three witnesses gave very different stories about what happened. One saw three attackers with the main one being a tall man in a red jacket. Another saw two attackers with a different description entirely. The witnesses also couldn't agree on which way the suspects ran or how long the fight lasted. There's also a question about whether Williams actually knew his attackers — one witness heard him yell something that suggested he recognized them, even though he told police they were strangers. It's hard to piece together exactly what happened here. Police are looking for security camera footage that might help clear things up.",
+  "confidence": 0.55,
+  "token_usage": {"prompt_tokens": 2104, "completion_tokens": 198, "total_tokens": 2302},
+  "retrieval_context": ["chunk_1: Mr. Williams stated that he was walking along the lakeside path when he was approached by two individuals...", "chunk_2: Three witnesses were present but provided substantially conflicting accounts..."],
+  "temperature": 0.7
+}

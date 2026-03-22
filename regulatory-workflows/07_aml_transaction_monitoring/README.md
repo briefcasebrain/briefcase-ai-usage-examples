@@ -206,7 +206,7 @@ This example provides comprehensive documentation for AML compliance examination
 
 **Technical Documentation:**
 - [Shared Backend Utilities](../shared/README.md)
-- [Briefcase AI SDK Documentation](https://docs.briefcasebrain.com)
+- [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 
 **Related Workflows:**

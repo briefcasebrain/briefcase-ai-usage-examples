@@ -194,7 +194,7 @@ Execution Time: 2024-03-15T10:30:00Z
 If you see:
 ```
 ERROR: Briefcase AI SDK is required for [demo name]
-ImportError: No module named 'briefcase_ai'
+ImportError: No module named 'briefcase'
 ```
 
 **Solution**: Install the SDK:
@@ -307,12 +307,16 @@ The demos use authentic Briefcase AI SDK patterns:
 
 ```python
 # Real decision snapshot creation
-decision = briefcase_ai.DecisionSnapshot("function_name")
-decision.add_input(briefcase_ai.Input("param", "value", "string"))
-decision.add_output(briefcase_ai.Output("result", "output", "string"))
+from briefcase import DecisionSnapshot, Input, Output
+from briefcase.storage import SqliteBackend
+
+decision = DecisionSnapshot("function_name")
+decision.add_input(Input("param", "value", "string"))
+decision.add_output(Output("result", "output", "string"))
 
 # Real backend storage
-decision_id = backend.store_decision(decision)
+backend = SqliteBackend.in_memory()
+decision_id = backend.save_decision(decision)
 ```
 
 This ensures the demos reflect actual production usage.
@@ -345,7 +349,7 @@ This ensures the demos reflect actual production usage.
 For questions about:
 - **SDK Installation**: Check pip installation and Python environment
 - **Demo Execution**: Review prerequisites and dependencies
-- **Briefcase AI Platform**: Contact support@briefcasebrain.com
-- **Enterprise Licensing**: Contact support@briefcasebrain.com
+- **Briefcase AI Platform**: Contact support@briefcaseai.org
+- **Enterprise Licensing**: Contact support@briefcaseai.org
 
 The demos provide a comprehensive introduction to enterprise AI governance with Briefcase AI. They demonstrate how the SDK transforms AI operations from black boxes into transparent, auditable, and governable systems.

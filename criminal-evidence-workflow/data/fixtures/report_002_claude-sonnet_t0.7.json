@@ -1,0 +1,10 @@
+{
+  "report_id": "report_002",
+  "model": "claude-sonnet",
+  "provider": "anthropic",
+  "summary": "Officer Thompson conducted a traffic stop on Broadway in Oakland on the night of April 2, 2024. The driver of a black 2019 BMW, Robert Fitzgerald, had been speeding at nearly twice the limit and weaving across lanes before running a red signal. A pedestrian was almost struck. Fitzgerald showed obvious signs of intoxication and performed poorly on standardized field sobriety tests. His blood alcohol was measured at 0.14% at the scene and confirmed at 0.13%/0.12% at the police station. He was arrested, booked, and his vehicle impounded for 30 days. The case is proceeding through Alameda County courts.",
+  "confidence": 0.81,
+  "token_usage": {"prompt_tokens": 1923, "completion_tokens": 175, "total_tokens": 2098},
+  "retrieval_context": ["chunk_1: On April 2, 2024, at approximately 2318 hours, I, Officer K. Thompson, observed a black 2019 BMW 330i...", "chunk_2: Mr. Fitzgerald exhibited multiple signs of intoxication..."],
+  "temperature": 0.7
+}

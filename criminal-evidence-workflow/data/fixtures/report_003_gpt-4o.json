@@ -1,0 +1,10 @@
+{
+  "report_id": "report_003",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "On April 10, 2024, at approximately 2135 hours, Officer J. Nakamura responded to an assault at the 500 block of Lake Merritt Boulevard near the amphitheater. Victim Andre Williams sustained a laceration above his left eye, bruising to his left cheekbone, and defensive abrasions on his left forearm. Williams reported being approached and attacked by two individuals who demanded his wallet and phone. However, witness accounts are substantially conflicting and complicate the factual picture. Witness Lisa Tran reported seeing three assailants (not two) with a tall male in a red jacket as the primary aggressor, describing the incident as lasting approximately two minutes with an item taken from the victim's pocket, with suspects fleeing southbound. Witness Michael O'Brien described only two individuals with a Hispanic male of average height in a dark blue or black jacket, stating the altercation lasted roughly 30 seconds with no items taken, and suspects fleeing westbound. Witness Priya Sharma observed two individuals fleeing eastbound and notably reported hearing Williams shout 'I know you' at his attackers, which contradicts Williams' assertion that the assailants were strangers. Given these significant discrepancies in witness accounts regarding the number of attackers, suspect descriptions, direction of flight, duration of the assault, and the victim's relationship to the suspects, the factual basis of this incident remains uncertain pending further investigation including security camera review.",
+  "confidence": 0.62,
+  "token_usage": {"prompt_tokens": 2104, "completion_tokens": 342, "total_tokens": 2446},
+  "retrieval_context": ["chunk_1: Mr. Williams stated that he was walking along the lakeside path when he was approached by two individuals...", "chunk_2: Three witnesses were present but provided substantially conflicting accounts..."],
+  "temperature": 0.0
+}

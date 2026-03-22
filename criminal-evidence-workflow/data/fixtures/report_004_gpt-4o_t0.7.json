@@ -1,0 +1,10 @@
+{
+  "report_id": "report_004",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "Two shoplifters hit Bay Area Electronics on Lakeshore Avenue in Oakland on April 18, 2024 using a well-rehearsed playbook. A woman chatted up a sales associate about headphones to keep him busy while her partner used a magnet key to crack open the phone display case in the back. They grabbed three iPhone 15 Pro Max phones and two Samsung Galaxy S24 Ultras — over $6,000 worth of merchandise — stuffed them in a bag lined to block security tags, and bolted out the back door. They drove off in what looked like a silver Toyota RAV4. The store manager says this is the second time in a month they've been hit with the same technique, and he thinks it's an organized ring.",
+  "confidence": 0.84,
+  "token_usage": {"prompt_tokens": 1876, "completion_tokens": 203, "total_tokens": 2079},
+  "retrieval_context": ["chunk_1: Mr. Yamamoto stated that at approximately 1405 hours, two individuals entered the store...", "chunk_2: Security camera footage reviewed on scene shows the male suspect removing three Apple iPhone 15 Pro Max units..."],
+  "temperature": 0.7
+}

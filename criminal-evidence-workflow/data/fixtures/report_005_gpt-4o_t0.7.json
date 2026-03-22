@@ -1,0 +1,10 @@
+{
+  "report_id": "report_005",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "A shoplifting incident was reported at Bay Area Electronics on Lakeshore Avenue in Oakland on March 22, 2024. Two suspects worked together — a woman distracted a store employee while a man grabbed phones from a display case in the back of the store. He appears to have used some kind of magnetic key to open the case. They took four iPhone 15 Pro phones worth about $4,000 total and left through the back door. A customer saw them get into a light-colored SUV. The store manager said they've been having more problems with organized theft lately. This case looks like it's connected to another similar theft that happened at the same store about a month later. A detective is investigating both incidents.",
+  "confidence": 0.79,
+  "token_usage": {"prompt_tokens": 1789, "completion_tokens": 187, "total_tokens": 1976},
+  "retrieval_context": ["chunk_1: According to Mr. Yamamoto, at approximately 1630 hours, two individuals entered the store...", "chunk_2: The male suspect removed four Apple iPhone 15 Pro units (retail value $999 each) from the display..."],
+  "temperature": 0.7
+}

@@ -145,6 +145,10 @@ briefcase_ai_config.json
 audit_trail.db
 decision_snapshots/
 
+# Criminal evidence workflow runtime artifacts
+criminal-evidence-workflow/decisions.db
+criminal-evidence-workflow/.benchmarks/
+
 # Local development
 .env.local
 .env.development

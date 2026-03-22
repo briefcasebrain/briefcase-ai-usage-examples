@@ -1,128 +1,107 @@
 # Briefcase AI Usage Examples
 
-## Enterprise AI Governance for Financial Services & E-Commerce
+Enterprise AI governance demonstrations for financial services, e-commerce, and criminal justice.
 
 [![License: BSL 1.1](https://img.shields.io/badge/License-BSL%201.1-blue.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![briefcase-ai v3.0.0](https://img.shields.io/badge/briefcase--ai-v3.0.0-green.svg)](https://pypi.org/project/briefcase-ai/)
 
-**Two comprehensive demonstration suites showcasing enterprise AI governance across industries:**
-
-| **Financial Services** | **E-Commerce** |
-|------------------------|----------------|
-| 14 regulatory compliance workflows | Complete enterprise governance demo |
-| Banks, credit unions, fintechs | Retail, e-commerce, tech companies |
-| Examiner-ready audit trails | Multi-team AI oversight |
-| OCC, CFPB, SEC compliance | Cost attribution & performance monitoring |
-
----
-
-## What Problems Does Briefcase AI Solve?
-
-### Universal AI Governance Challenges
-- **Audit Trail Gaps**: No immutable record of AI decisions for regulatory examination
-- **Cost Blindness**: AI spend without per-team, per-decision attribution
-- **Shadow AI**: Unknown agents deployed without governance oversight
-- **Performance Drift**: Model degradation with no fast root cause analysis
-- **Compliance Reporting**: Manual processes taking weeks with multiple engineers
-
-### Enterprise Impact
-- **Financial Institutions**: Regulatory examinations, fair lending compliance, risk management
-- **E-Commerce Companies**: Multi-team governance, cost optimization, performance monitoring
-- **All Industries**: Complete audit trails, automated reporting, regulatory readiness
+| **Financial Services** | **E-Commerce** | **Criminal Justice** |
+|------------------------|----------------|----------------------|
+| 14 regulatory compliance workflows | 4 enterprise governance modules | LLM evidence summarization pipeline |
+| Banks, credit unions, fintechs | Retail, e-commerce, tech companies | Law enforcement, prosecutors, courts |
+| Examiner-ready audit trails | Multi-team AI oversight | Guardrails, replay, PII sanitization |
+| OCC, CFPB, SEC compliance | Cost attribution and performance monitoring | SOC2 compliance, data lineage |
 
 ---
 
-## Quick Setup
+## Overview
 
-### Option 1: Docker (Recommended)
+These examples demonstrate the [Briefcase AI SDK](https://github.com/briefcasebrain/briefcase-ai-sdk) across three industry verticals. Each example produces immutable audit trails, cost attribution data, and compliance-ready documentation using production SDK patterns.
 
-**Easiest setup with guaranteed compatibility:**
+**Problems addressed:**
+- No immutable record of AI decisions for regulatory examination
+- AI spend without per-team, per-decision attribution
+- Unknown agents deployed without governance oversight
+- Model degradation with no root cause analysis
+- Manual compliance reporting requiring weeks and multiple engineers
+
+---
+
+## Setup
+
+### Option 1: Docker
 
 ```bash
-# Build and test the environment
 ./docker-run.sh build
 ./docker-run.sh test
-
-# Run demos
 ./docker-run.sh run
-
-# Start Jupyter notebooks
-./docker-run.sh jupyter  # Available at http://localhost:8889
+./docker-run.sh jupyter  # http://localhost:8889
 ```
 
-### Option 2: Local Setup
-
-**For local development:**
+### Option 2: Local
 
 ```bash
-# Run the setup script (Python 3.11/3.12 recommended)
+# Automated setup (Python 3.11/3.12 recommended)
 ./setup.sh
-
-# Activate environment
 source briefcase-ai-demos-env/bin/activate
 ```
 
-The setup script will:
-- Verify Python 3.8+ installation (warns about 3.14+ compilation needs)
-- Create a virtual environment
-- Install briefcase-ai SDK and all dependencies
-- Configure Jupyter kernel
-- Test the installation
+### Option 3: Manual
+
+```bash
+python -m venv venv && source venv/bin/activate
+pip install briefcase-ai
+pip install -r regulatory-workflows/requirements.txt     # Financial services
+pip install -r vantara-briefcase-demo/requirements.txt   # E-commerce
+```
+
+---
 
 ## Quick Start
 
-### Choose Your Industry Path
-
 <table>
 <tr>
-<td width="50%">
+<td width="33%">
 
-### **Financial Services**
-**Regulatory compliance workflows**
+### Financial Services
 
 ```bash
-# Clone and setup
-git clone [repository]
 cd regulatory-workflows
 
-# Run credit underwriting example
 python 01_credit_underwriting/example.py
-
-# Explore OFAC sanctions screening
 python 02_ofac_sanctions/example.py
-
-# Interactive Jupyter analysis
-jupyter notebook 01_credit_underwriting/credit_underwriting_walkthrough.ipynb
 ```
 
-**Time to value**: 2 minutes
-**Best for**: Banks, credit unions, fintechs
-**Focus**: Regulatory examination readiness
+14 workflows covering ECOA, BSA, CFPB, SEC, OCC, and FINRA compliance.
 
 </td>
-<td width="50%">
+<td width="33%">
 
-### **E-Commerce (Vantara Demo)**
-**Enterprise AI governance at scale**
+### E-Commerce
 
 ```bash
-# Clone and setup
-git clone [repository]
 cd vantara-briefcase-demo
 
-# Discover AI agents across teams
 python 01_agent_discovery/example.py
-
-# Analyze $3.8M AI spend by team
 python 02_cost_attribution/example.py
-
-# Interactive governance analysis
-jupyter notebook 01_agent_discovery/agent_discovery_walkthrough.ipynb
 ```
 
-**Time to value**: 2 minutes
-**Best for**: E-commerce, retail, tech companies
-**Focus**: Multi-team governance & cost optimization
+4 modules for agent discovery, cost attribution, drift detection, and governance reporting.
+
+</td>
+<td width="33%">
+
+### Criminal Justice
+
+```bash
+cd criminal-evidence-workflow
+
+python experiments/run_experiment.py --fast
+pytest tests/ -v
+```
+
+LLM evidence summarization with guardrails, replay, routing, PII sanitization, and SOC2 compliance.
 
 </td>
 </tr>
@@ -130,278 +109,186 @@ jupyter notebook 01_agent_discovery/agent_discovery_walkthrough.ipynb
 
 ---
 
+## SDK Usage
+
+All examples use the [Briefcase AI SDK](https://github.com/briefcasebrain/briefcase-ai-sdk) v3.0.0, imported as `briefcase` and installed via `pip install briefcase-ai`.
+
+### Decision Tracking
+
+```python
+from briefcase import DecisionSnapshot, Input, Output, ModelParameters, init
+from briefcase.storage import SqliteBackend
+
+init()
+
+# Create a decision snapshot
+decision = DecisionSnapshot("credit_underwriting")
+decision.add_input(Input("bureau_score", "685", "integer"))
+decision.add_input(Input("annual_income", "65000.0", "float"))
+
+output = Output("decision", "approve", "string")
+output.with_confidence(0.92)
+decision.add_output(output)
+
+# Attach model metadata
+params = ModelParameters("gpt-4o")
+params.with_provider("openai")
+decision.with_model_parameters(params)
+
+decision.with_execution_time(42.5)
+decision.add_tag("regulation", "ECOA/Reg B")
+
+# Store and retrieve
+backend = SqliteBackend.in_memory()
+decision_id = backend.save_decision(decision)
+retrieved = backend.load_decision(decision_id)
+```
+
+### Decorator-Based Tracking
+
+```python
+from briefcase.decorators import capture
+
+@capture(decision_type="classify_text")
+def classify(text: str) -> str:
+    return model.predict(text)
+
+result = classify("loan application data")  # Automatically tracked
+```
+
+### Additional Capabilities
+
+| Module | Import | Purpose |
+|--------|--------|---------|
+| Cost calculation | `from briefcase.cost import CostCalculator` | Model cost estimation and budget monitoring |
+| Drift detection | `from briefcase.drift import DriftCalculator` | Output consistency scoring and alerts |
+| Data sanitization | `from briefcase.sanitize import Sanitizer` | PII redaction before storage |
+| Correlation | `from briefcase.correlation import briefcase_workflow` | Cross-service workflow tracing |
+
+---
+
 ## Financial Services: Regulatory Workflows
 
-**14 comprehensive examples for financial institution AI compliance**
+14 workflows for financial institution AI compliance, each with a Python script and Jupyter notebook.
 
-### Use Cases Covered
-
-| Workflow | Primary Regulation | Regulatory Focus | Examiner Scenarios |
-|----------|-------------------|------------------|-------------------|
-| [01. Credit Underwriting](regulatory-workflows/01_credit_underwriting/) | ECOA/Reg B | Adverse action tracking, fair lending | OCC examination readiness |
-| [02. OFAC Sanctions Screening](regulatory-workflows/02_ofac_sanctions/) | OFAC/BSA | Watchlist integrity, violation defense | AML compliance validation |
-| [03. Fraud Detection & Reg E](regulatory-workflows/03_fraud_reg_e/) | Reg E/EFTA | Dispute resolution, liability management | Consumer protection compliance |
-| [04. Real-Time Payments Fraud](regulatory-workflows/04_realtime_payments_fraud/) | Fed RTP/OCC | Sub-500ms decisions, irrevocable risk | Operational risk management |
-| [05. Mortgage Fair Lending](regulatory-workflows/05_mortgage_fair_lending/) | ECOA/HMDA/Reg B | Disparate impact analysis | Fair lending examination |
-| [06. KYC/KYB Third-Party](regulatory-workflows/06_kyc_kyb_third_party/) | BSA/AML/FinCEN | Vendor independence, audit control | Third-party risk management |
-| [07. AML Transaction Monitoring](regulatory-workflows/07_aml_transaction_monitoring/) | BSA/AML/FinCEN | Rule preservation, SAR filing | AML compliance examination |
-| [08. Neobank BaaS Sponsor](regulatory-workflows/08_neobank_baas_sponsor/) | OCC SR 11-7 | Charter liability, partner oversight | Sponsor bank examination |
-| [09. Fintech Release Monitoring](regulatory-workflows/09_fintech_release_monitoring/) | Sponsor Oversight | Change management, drift detection | Technology risk assessment |
-| [10. Collections & Debt Management](regulatory-workflows/10_collections_debt/) | CFPB UDAAP/FDCPA | State-specific compliance | Consumer compliance examination |
-| [11. Robo-Advisory Regulation BI](regulatory-workflows/11_robo_advisory_reg_bi/) | SEC Reg BI/FINRA | Fiduciary standard, client protection | SEC compliance examination |
-| [12. Earned Wage Access](regulatory-workflows/12_ewa_non_traditional_credit/) | CFPB/TILA | Classification uncertainty tracking | CFPB supervision |
-| [13. MCA Cash Flow Lending](regulatory-workflows/13_mca_cash_flow_lending/) | State Commercial Disclosure | Multi-state compliance | Commercial finance examination |
-| [14. Algorithmic Trading Surveillance](regulatory-workflows/14_algo_trading_surveillance/) | SEC 17a-4/FINRA | Market manipulation detection | Trading surveillance examination |
-
-### Key Benefits for Financial Institutions
-
-**Regulatory Readiness**
-- Pre-built audit trails for all major financial regulations
-- Examiner-ready documentation and query responses
-- Complete decision history for fair lending analysis
-
-**Risk Mitigation**
-- Immutable decision snapshots with cryptographic validation
-- Multi-jurisdictional compliance across federal and state frameworks
-- Complete historical context for legal and regulatory defense
-
-**Operational Efficiency**
-- Production-ready code suitable for financial institution deployment
-- Clean APIs that integrate with existing compliance infrastructure
-- Automated compliance reporting and risk assessment
+| Workflow | Regulation | Focus |
+|----------|-----------|-------|
+| [01. Credit Underwriting](regulatory-workflows/01_credit_underwriting/) | ECOA/Reg B | Adverse action tracking, fair lending |
+| [02. OFAC Sanctions Screening](regulatory-workflows/02_ofac_sanctions/) | OFAC/BSA | Watchlist integrity, violation defense |
+| [03. Fraud Detection & Reg E](regulatory-workflows/03_fraud_reg_e/) | Reg E/EFTA | Dispute resolution, liability management |
+| [04. Real-Time Payments Fraud](regulatory-workflows/04_realtime_payments_fraud/) | Fed RTP/OCC | Sub-500ms decisions, irrevocable risk |
+| [05. Mortgage Fair Lending](regulatory-workflows/05_mortgage_fair_lending/) | ECOA/HMDA/Reg B | Disparate impact analysis |
+| [06. KYC/KYB Third-Party](regulatory-workflows/06_kyc_kyb_third_party/) | BSA/AML/FinCEN | Vendor independence, audit control |
+| [07. AML Transaction Monitoring](regulatory-workflows/07_aml_transaction_monitoring/) | BSA/AML/FinCEN | Rule preservation, SAR filing |
+| [08. Neobank BaaS Sponsor](regulatory-workflows/08_neobank_baas_sponsor/) | OCC SR 11-7 | Charter liability, partner oversight |
+| [09. Fintech Release Monitoring](regulatory-workflows/09_fintech_release_monitoring/) | Sponsor Oversight | Change management, drift detection |
+| [10. Collections & Debt](regulatory-workflows/10_collections_debt/) | CFPB UDAAP/FDCPA | State-specific compliance |
+| [11. Robo-Advisory Reg BI](regulatory-workflows/11_robo_advisory_reg_bi/) | SEC Reg BI/FINRA | Fiduciary standard, client protection |
+| [12. Earned Wage Access](regulatory-workflows/12_ewa_non_traditional_credit/) | CFPB/TILA | Classification uncertainty tracking |
+| [13. MCA Cash Flow Lending](regulatory-workflows/13_mca_cash_flow_lending/) | State Commercial | Multi-state compliance |
+| [14. Algo Trading Surveillance](regulatory-workflows/14_algo_trading_surveillance/) | SEC 17a-4/FINRA | Market manipulation detection |
 
 ---
 
 ## E-Commerce: Vantara Commerce Demo
 
-**Complete enterprise AI governance for multi-team retail e-commerce**
+Enterprise AI governance for a simulated retailer with 45 teams, $3.8M annual AI spend, and 180M monthly decisions across OpenAI, Anthropic, Google Vertex, and Cohere.
 
-### Company Profile: Vantara Commerce
-- **Industry**: Retail E-Commerce
-- **Scale**: 45 AI-using teams, 180M monthly decisions
-- **AI Spend**: $3.8M annually across 4 vendors (OpenAI, Anthropic, Google Vertex, Cohere)
-- **Peak Season**: Q4 with 4.2x cost multiplier
-- **Challenge**: No central governance, cost attribution, or performance monitoring
-
-### Four Complete Governance Examples
-
-| Module | Enterprise Challenge | Briefcase AI Solution | Time Savings |
-|--------|---------------------|----------------------|-------------|
-| **[01. Agent Discovery](vantara-briefcase-demo/01_agent_discovery/)** | No central AI agent registry | Self-populating discovery with shadow AI detection | Continuous vs quarterly surveys |
-| **[02. Cost Attribution](vantara-briefcase-demo/02_cost_attribution/)** | $3.8M bill with no team breakdown | Per-decision cost tracking and model optimization | Real-time vs monthly reconciliation |
-| **[03. Peak Season Drift](vantara-briefcase-demo/03_peak_season_drift/)** | Model regressions during Q4 | Instant root cause analysis and rollback guidance | 1 minute vs 2-5 days RCA |
-| **[04. Governance Report](vantara-briefcase-demo/04_governance_report/)** | 21-day manual compliance reports | Automated regulatory risk analysis in <1 second | 672 engineer-hours saved per report |
-
-### Demonstrated ROI Impact
-
-**Cost Optimization**
-- **$609K annual savings** from model right-sizing recommendations
-- Real-time spend tracking across 4 AI vendors
-- Peak season cost impact analysis (4.2x multiplier detection)
-
-**Operational Efficiency**
-- **Instant discovery** of 2 "shadow AI" agents unknown to governance
-- **1-minute root cause analysis** vs 2-5 days manual correlation
-- **Automated compliance reporting** vs 21-day manual process
-
-**Risk Mitigation**
-- Early detection of compliance gaps and regulatory exposure
-- Complete audit trail for 180M monthly decisions
-- Performance monitoring across 45 independent teams
-
-### Enterprise Scale Validation
-- **High Volume**: Tested for 180M+ monthly decisions
-- **Multi-Vendor**: Supports any AI provider (OpenAI, Anthropic, Google, Cohere)
-- **Cross-Team**: Handles 45+ independent engineering teams
-- **Peak Traffic**: Validated for 4.2x seasonal volume increases
+| Module | Challenge | Outcome |
+|--------|-----------|---------|
+| [01. Agent Discovery](vantara-briefcase-demo/01_agent_discovery/) | No central AI registry | 10 agents discovered, 2 shadow AI identified |
+| [02. Cost Attribution](vantara-briefcase-demo/02_cost_attribution/) | $3.8M with no team breakdown | Per-decision cost tracking, $609K savings identified |
+| [03. Peak Season Drift](vantara-briefcase-demo/03_peak_season_drift/) | Q4 model regressions | Root cause analysis in <1 minute vs 2-5 days |
+| [04. Governance Report](vantara-briefcase-demo/04_governance_report/) | 21-day manual reports | Automated report generation in <1 second |
 
 ---
 
-## Technical Documentation
+## Criminal Justice: Evidence Summarization Workflow
 
-### Prerequisites
-- Python 3.9 or higher
-- Briefcase AI SDK (contact support@briefcasebrain.com for access)
-- Virtual environment (recommended)
+LLM-powered evidence summarization for criminal investigations, instrumented end-to-end with the Briefcase AI SDK. Runs fully offline using pre-generated fixtures.
 
-### Installation
+| Section | Capability | SDK Features |
+|---------|-----------|-------------|
+| Instrumented Pipeline | 5 reports x 2 models, automatic decision capture | `@capture`, `DecisionSnapshot`, `ModelParameters`, `detect_hardware()` |
+| Structured Evaluation | 3 guardrails composed into weighted scorecard | `GuardrailPipeline`, `Scorecard`, `CostCalculator` |
+| Error Reproduction | Stochastic failure detection at temperature=0.7 | `ReplayEngine`, `DriftCalculator`, event emission |
+| Confidence Routing | Auto vs human review based on confidence threshold | `InternalRouter`, `RoutingDecision` |
+| PII Sanitization | SSN, phone, email redaction from reports | `Sanitizer`, `sanitize_json` |
+| Data Lineage | Version tracking, drift detection, external data monitoring | `ExternalDataTracker`, `PromptValidationEngine` |
+| SOC2 Compliance | Automated control evaluation and report generation | `SOC2ReportGenerator` |
 
-```bash
-# Clone the repository
-git clone https://github.com/briefcasebrain/briefcase-ai-usage-examples.git
-cd briefcase-ai-usage-examples
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies (choose your path)
-pip install -r regulatory-workflows/requirements.txt     # Financial services
-pip install -r vantara-briefcase-demo/requirements.txt  # E-commerce
-
-# Install Briefcase AI SDK
-pip install briefcase-ai
-```
-
-### Repository Structure
-
-```
-├── regulatory-workflows/              # Financial Services Examples
-│   ├── 01_credit_underwriting/
-│   │   ├── example.py                 # Complete Python implementation
-│   │   ├── credit_underwriting_walkthrough.ipynb
-│   │   └── README.md                  # Detailed workflow documentation
-│   ├── 02_ofac_sanctions/
-│   ├── ... (12 more workflows)
-│   ├── shared/backend.py              # Shared utilities
-│   └── requirements.txt
-│
-├── vantara-briefcase-demo/            # E-Commerce Examples
-│   ├── 01_agent_discovery/
-│   │   ├── example.py                 # Agent discovery implementation
-│   │   ├── agent_discovery_walkthrough.ipynb
-│   │   └── README.md
-│   ├── 02_cost_attribution/
-│   ├── 03_peak_season_drift/
-│   ├── 04_governance_report/
-│   ├── shared/backend.py              # Shared utilities
-│   └── requirements.txt
-│
-└── README.md                          # This file
-```
-
-### Architecture Overview
-
-**Decision Capture**
-Every AI decision automatically creates a DecisionSnapshot containing:
-- Agent metadata (team, model, version, deployment info)
-- Execution context (input/output data, token usage, timestamps)
-- Cost data (vendor pricing, per-decision costs)
-- Governance info (human-in-loop status, regulatory flags)
-- Performance metrics (confidence scores, business KPIs)
-
-**Audit Trail**
-- Immutable storage with decision preservation
-- Query interface by agent, team, time period, model version
-- Compliance-ready for regulatory examination
-- No external dependencies (self-contained)
-
-**Data Security**
-- Local processing (all data remains within organizational boundaries)
-- No secrets transmission (no API keys or credentials transmitted)
-- Audit only (captures metadata, not sensitive business data)
-- Compliance designed for financial services regulatory standards
+34 tests, all passing. See [criminal-evidence-workflow/README.md](criminal-evidence-workflow/README.md) for full documentation.
 
 ---
 
-## Results & Impact
+## Repository Structure
 
-### Quantified Benefits Across Industries
+```
+shared/
+  backend.py                           # SDK wrapper and backend configuration
+  ai_functions.py                      # Instrumented AI model simulations
+
+regulatory-workflows/                  # Financial services (14 workflows)
+  01_credit_underwriting/              # example.py + Jupyter notebook + README
+  02_ofac_sanctions/
+  ...
+  14_algo_trading_surveillance/
+
+vantara-briefcase-demo/                # E-commerce (4 modules)
+  01_agent_discovery/
+  02_cost_attribution/
+  03_peak_season_drift/
+  04_governance_report/
+
+criminal-evidence-workflow/            # Criminal justice
+  src/                                 # Pipeline, guardrails, evaluation, routing
+  data/                                # 5 synthetic police reports + LLM fixtures
+  experiments/                         # Full demo and model comparison scripts
+  notebooks/                           # 4 interactive Jupyter walkthroughs
+  tests/                               # 34 tests (pytest)
+```
+
+---
+
+## Architecture
+
+Every AI function call creates a `DecisionSnapshot` containing:
+
+- **Inputs/Outputs**: Parameters and results with type annotations
+- **Model metadata**: Provider, model name, version via `ModelParameters`
+- **Execution context**: Timestamps, execution time, tags
+- **Cost data**: Token usage mapped to vendor pricing
+- **Governance flags**: Human-in-loop status, regulatory annotations
+
+Decisions are stored in `SqliteBackend` (in-memory for demos, persistent for production). The audit trail supports query by agent, team, time period, and model version.
+
+**Data security**: All processing is local. No API keys, credentials, or sensitive business data leave your environment.
+
+---
+
+## Results
 
 | Metric | Financial Services | E-Commerce |
 |--------|-------------------|------------|
-| **Compliance Reporting** | Examiner-ready responses | 672 hours → 1 second |
-| **Cost Optimization** | Risk-adjusted ROI tracking | $609K annual savings identified |
-| **Incident Response** | Regulatory violation detection | 1 minute vs 2-5 day RCA |
-| **Agent Discovery** | Shadow AI identification | 100% coverage, zero IT access |
-| **Audit Trail** | Immutable regulatory evidence | 180M decisions tracked |
-
-### Before vs After Briefcase AI
-
-**Before Implementation**
-- Manual compliance reporting (weeks)
-- Cost attribution via monthly invoices
-- Performance issues detected via customer complaints
-- Shadow AI discovered during audits
-- Regulatory examinations require extensive preparation
-
-**After Implementation**
-- Automated compliance reporting (seconds)
-- Real-time cost tracking and optimization
-- Proactive performance monitoring with instant RCA
-- Continuous agent discovery with zero IT access
-- Regulatory examination readiness with complete audit trails
-
-### Time to Value
-- **Setup**: < 30 minutes for any example
-- **First insights**: < 2 minutes of example execution
-- **Production deployment**: Days, not months
-- **ROI realization**: Immediate cost visibility and optimization
+| Compliance reporting | Examiner-ready responses | 672 hours reduced to 1 second |
+| Cost optimization | Risk-adjusted ROI tracking | $609K annual savings identified |
+| Incident response | Regulatory violation detection | 1 minute vs 2-5 day RCA |
+| Agent discovery | Shadow AI identification | 100% coverage, zero IT access |
+| Audit trail | Immutable regulatory evidence | 180M decisions tracked |
 
 ---
 
-## Support & Resources
+## Support
 
-### Getting Started
-- **Quick Start**: Choose your industry path above
-- **Documentation**: Detailed README in each example directory
-- **Interactive**: Jupyter notebooks for hands-on exploration
-- **Community**: GitHub issues for questions and feedback
+| | |
+|-|-|
+| General support | support@briefcaseai.org |
+| Enterprise licensing | legal@briefcaseai.org |
+| Professional services | services@briefcaseai.org |
+| Security and compliance | security@briefcaseai.org |
+| Documentation | https://briefcaseai.io |
 
-### Enterprise Licensing & Support
-
-**Business Software License (BSL 1.1)**
-- Internal use within your organization
-- Development and testing for compliance purposes
-- Production deployment within licensed institutions
-
-**Enterprise Support Services**
-- Regulatory consultation for compliance implementation
-- Custom workflow development for institution-specific requirements
-- Integration support for existing compliance infrastructure
-- Regulatory examination assistance and documentation support
-
-### Professional Services
-
-**For Financial Institutions**
-- Compliance assessment and regulatory gap analysis
-- Implementation support for production environments
-- Regulatory training for compliance teams
-- Examination preparation and documentation support
-
-**For E-Commerce & Technology Companies**
-- AI governance assessment across multiple teams
-- Cost optimization and vendor management consulting
-- Performance monitoring and drift detection setup
-- Automated compliance reporting implementation
-
-### Contact Information
-
-- **General Support**: support@briefcasebrain.com
-- **Enterprise Licensing**: legal@briefcasebrain.com
-- **Professional Services**: services@briefcasebrain.com
-- **Security & Compliance**: security@briefcasebrain.com
-- **Documentation**: https://docs.briefcasebrain.com
-
-### Security & Compliance
-
-All examples are designed with enterprise security requirements:
-- **Data Privacy**: No sensitive data transmission outside your environment
-- **Audit Integrity**: Cryptographically secured decision snapshots
-- **Regulatory Standards**: Designed for SOC 2 Type II and financial examination compliance
-- **Multi-Tenant**: Safe for use in shared infrastructure environments
-
----
-
-## Which Demo Is Right For Me?
-
-**Choose Financial Services if:**
-- You work at a bank, credit union, or fintech
-- You need regulatory examination readiness
-- You're focused on compliance (ECOA, BSA, CFPB, SEC, OCC)
-- You need fair lending analysis and audit trails
-
-**Choose E-Commerce (Vantara) if:**
-- You have multiple AI-powered teams
-- You need cost attribution and optimization
-- You want performance monitoring and drift detection
-- You need automated governance reporting
-
-**Both demos showcase:**
-- Complete audit trail capabilities
-- Immutable decision snapshots
-- Regulatory readiness features
-- Production-grade implementation patterns
+**License**: Business Software License (BSL 1.1). See [LICENSE](LICENSE) for details.
 
 ---
 

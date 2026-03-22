@@ -1,0 +1,10 @@
+{
+  "report_id": "report_005",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "On March 22, 2024, at approximately 1645 hours, Officer D. Reyes responded to a grand theft at Bay Area Electronics, 3200 Lakeshore Avenue, Oakland, CA. Store manager Henry Yamamoto reported that two individuals had executed a coordinated theft at approximately 1630 hours. A white female (25-30 years old, light brown or blonde hair, dark green jacket) engaged employee Maria Santos at the front register with repeated questions about warranties and return policies as a distraction. Meanwhile, a white male (short hair, gray or dark-colored top) accessed the premium smartphone display case at the rear of the store, apparently using a magnetic security key, though all store keys were accounted for after the incident. Four Apple iPhone 15 Pro units (retail value $999 each) were stolen, totaling $3,996 in losses. Both suspects exited through the rear emergency door onto Rand Avenue at approximately 1638 hours. Witness George Patterson observed them entering a light-colored SUV and departing northbound on Rand Avenue. The theft MO — two-person distraction team, magnetic key access, rear exit escape — mirrors a subsequent incident at the same location (Case #2024-00378), suggesting organized retail theft activity. Case assigned to Detective A. Morales, Property Crimes Division.",
+  "confidence": 0.91,
+  "token_usage": {"prompt_tokens": 1789, "completion_tokens": 298, "total_tokens": 2087},
+  "retrieval_context": ["chunk_1: According to Mr. Yamamoto, at approximately 1630 hours, two individuals entered the store...", "chunk_2: The male suspect removed four Apple iPhone 15 Pro units (retail value $999 each) from the display..."],
+  "temperature": 0.0
+}

@@ -1,0 +1,10 @@
+{
+  "report_id": "report_004",
+  "model": "claude-sonnet",
+  "provider": "anthropic",
+  "summary": "A significant organized retail theft took place at Bay Area Electronics, a store on Lakeshore Avenue in Oakland, on April 18, 2024. The operation involved two individuals working in tandem: one created a distraction while the other accessed locked merchandise using a magnetic security key that may have been obtained during an earlier visit. The stolen goods — five high-end smartphones including iPhones and Samsung Galaxy devices — totaled just under $6,200 in value. The suspects fled via the store's rear exit in a silver SUV. Store management links this to an earlier theft with matching tactics and has involved the organized retail crime task force.",
+  "confidence": 0.82,
+  "token_usage": {"prompt_tokens": 1876, "completion_tokens": 178, "total_tokens": 2054},
+  "retrieval_context": ["chunk_1: Mr. Yamamoto stated that at approximately 1405 hours, two individuals entered the store...", "chunk_2: Security camera footage reviewed on scene shows the male suspect removing three Apple iPhone 15 Pro Max units..."],
+  "temperature": 0.7
+}

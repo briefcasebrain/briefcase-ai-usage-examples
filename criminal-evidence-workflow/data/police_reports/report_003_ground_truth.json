@@ -1,0 +1,32 @@
+{
+  "report_id": "report_003",
+  "incident_type": "aggravated assault",
+  "date": "2024-04-10",
+  "location": "500 Block of Lake Merritt Boulevard, Oakland, CA 94610",
+  "key_facts": [
+    "victim assaulted near Lake Merritt amphitheater",
+    "victim sustained laceration above left eye, bruising on cheekbone, forearm abrasions",
+    "victim claims two unknown assailants demanded wallet and phone",
+    "witnesses provide conflicting accounts on number of attackers (2 vs 3)",
+    "witnesses disagree on suspect description (red jacket vs dark blue/black jacket)",
+    "witnesses disagree on direction suspects fled (south vs west vs east)",
+    "witness 3 heard victim shout 'I know you' contradicting stranger-assault claim"
+  ],
+  "entities": {
+    "officers": ["Ofc. J. Nakamura #4102"],
+    "victims": ["Andre Williams"],
+    "witnesses": ["Lisa Tran", "Michael O'Brien", "Priya Sharma"],
+    "suspects": ["conflicting descriptions — see witness statements"],
+    "evidence": ["photographs of injuries", "torn jacket", "911 call recording", "potential security camera footage"],
+    "locations": ["500 Block Lake Merritt Boulevard", "Lakeshore Avenue", "Bellevue Avenue", "580 freeway overpass"]
+  },
+  "conflicting_details": {
+    "number_of_attackers": {"Tran": 3, "O'Brien": 2, "Sharma": 2},
+    "suspect_description": {"Tran": "tall Black male, red jacket", "O'Brien": "Hispanic male, average height, dark blue/black jacket", "Sharma": "could not determine race"},
+    "direction_fled": {"Tran": "southbound along lake path", "O'Brien": "westbound across Bellevue Ave", "Sharma": "eastbound toward 580 overpass"},
+    "duration": {"Tran": "about two minutes", "O'Brien": "maybe 30 seconds"},
+    "items_taken": {"Tran": "saw item taken from pocket", "O'Brien": "did not observe items taken"},
+    "victim_knew_attackers": {"Williams": "unknown assailants", "Sharma": "heard victim shout 'I know you'"}
+  },
+  "expected_summary_keywords": ["assault", "Lake Merritt", "conflicting", "witnesses", "laceration", "robbery"]
+}

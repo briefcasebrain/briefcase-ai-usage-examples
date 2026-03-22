@@ -1,0 +1,28 @@
+{
+  "report_id": "report_004",
+  "incident_type": "grand theft - retail",
+  "date": "2024-04-18",
+  "location": "Bay Area Electronics, 3200 Lakeshore Avenue, Oakland, CA 94610",
+  "key_facts": [
+    "two-person theft team used distraction technique",
+    "female suspect distracted employee while male accessed display",
+    "display case opened with magnet key (suspected stolen previously)",
+    "three iPhone 15 Pro Max and two Samsung Galaxy S24 Ultra stolen",
+    "total loss $6,195",
+    "suspects exited through rear emergency door onto Rand Avenue",
+    "suspects departed in silver SUV (possibly Toyota RAV4, partial plate 7M)",
+    "second significant theft in 30 days (related to Case #2024-00298)",
+    "lined bag used to defeat EAS tags"
+  ],
+  "entities": {
+    "officers": ["Ofc. P. Sullivan #6234"],
+    "victims": ["Bay Area Electronics / Henry Yamamoto (manager)"],
+    "witnesses": ["Henry Yamamoto", "Kevin Marsh", "Diane Kowalski"],
+    "suspects": ["white female ~25-30, blonde hair, green army jacket", "white male ~30, shaved head, goatee, gray sweatshirt"],
+    "evidence": ["security camera footage", "EAS tag remnants", "partial license plate 7M"],
+    "locations": ["Bay Area Electronics, 3200 Lakeshore Avenue", "Rand Avenue"],
+    "stolen_items": ["3x iPhone 15 Pro Max ($1,199 each)", "2x Samsung Galaxy S24 Ultra ($1,299 each)"]
+  },
+  "related_cases": ["2024-00298"],
+  "expected_summary_keywords": ["theft", "Bay Area Electronics", "organized", "magnet key", "distraction", "iPhone", "Samsung", "RAV4", "Rand Avenue"]
+}

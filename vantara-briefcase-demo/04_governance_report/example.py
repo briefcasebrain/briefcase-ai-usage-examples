@@ -31,7 +31,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
 
 try:
     import backend
-    from backend import briefcase_ai, DecisionSnapshot, SqliteBackend
+    from backend import briefcase, DecisionSnapshot, SqliteBackend
     from backend import COMPANY, TEAMS, compute_cost, print_audit_summary
 except ImportError as e:
     print(f"Error importing required modules: {e}")
@@ -179,7 +179,7 @@ def simulate_governance_decisions() -> List[DecisionSnapshot]:
             "company": COMPANY["name"],
             "report_period": "Last 90 Days",
             "compliance_framework": "FTC_ALGORITHMIC_PRICING",
-            "report_generation_method": "automated_briefcase_ai"
+            "report_generation_method": "automated_briefcase"
         }
 
         # Create decision snapshot using instrumented pattern
@@ -377,7 +377,7 @@ def main():
 
     # Initialize Briefcase AI SDK
     try:
-        briefcase_ai.init_with_config(2)
+        briefcase.init_with_config(2)
         print("SUCCESS: Briefcase AI SDK initialized")
     except Exception as e:
         print(f"ERROR: Failed to initialize SDK: {e}")

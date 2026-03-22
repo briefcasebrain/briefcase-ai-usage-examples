@@ -51,21 +51,23 @@ build_image() {
 test_sdk() {
     echo -e "${GREEN}🧪 Testing briefcase-ai SDK...${NC}"
     docker run --rm briefcase-ai-demos python3 -c "
-import briefcase_ai
+import briefcase
+from briefcase import DecisionSnapshot, Input, Output, init
+from briefcase.storage import SqliteBackend
 print('✅ briefcase-ai imported successfully')
-print(f'📦 Available classes: {[attr for attr in dir(briefcase_ai) if not attr.startswith(\"_\")][:10]}')
+print(f'📦 Available classes: {[attr for attr in dir(briefcase) if not attr.startswith(\"_\")][:10]}')
 
 # Initialize the SDK
-briefcase_ai.init()
+init()
 print('✅ Initialized briefcase-ai SDK')
 
 # Test basic functionality
-decision = briefcase_ai.DecisionSnapshot('test_function')
-decision.add_input(briefcase_ai.Input('test_input', 'test_value', 'string'))
-decision.add_output(briefcase_ai.Output('test_output', 'test_result', 'string'))
+decision = DecisionSnapshot('test_function')
+decision.add_input(Input('test_input', 'test_value', 'string'))
+decision.add_output(Output('test_output', 'test_result', 'string'))
 print('✅ Created DecisionSnapshot with Input and Output')
 
-backend = briefcase_ai.SqliteBackend.in_memory()
+backend = SqliteBackend.in_memory()
 decision_id = backend.save_decision(decision)
 print(f'✅ Stored decision: {decision_id}')
 

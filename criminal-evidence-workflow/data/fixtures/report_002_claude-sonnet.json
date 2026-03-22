@@ -1,0 +1,10 @@
+{
+  "report_id": "report_002",
+  "model": "claude-sonnet",
+  "provider": "anthropic",
+  "summary": "Officer K. Thompson initiated a traffic stop on April 2, 2024 after observing a black 2019 BMW 330i (California plate 8ABC123) speeding at 45 mph in a 25 mph zone on Broadway, weaving between lanes, and failing to stop at a red signal at the 14th Street intersection. The driver, Robert James Fitzgerald (residing at 2847 Telegraph Avenue, Apt 4B, Oakland), exhibited clear signs of alcohol impairment. Field sobriety testing revealed impairment across all three standardized measures. Breath alcohol testing showed a BAC of 0.14% at the scene via PAS device and 0.13%/0.12% at headquarters via Intoxilyzer 8000, well above the legal limit. Fitzgerald disclosed he had been at a birthday celebration at a Jack London Square establishment. He was charged under VC 23152(a) and 23152(b), booked with $5,000 bail, and his vehicle was impounded for 30 days. A pedestrian, Sarah Kim, was nearly struck during the red light violation. Fitzgerald's contact number is (510) 555-4271. DMV notification was filed and court proceedings are set for April 22, 2024 in Alameda County Superior Court.",
+  "confidence": 0.86,
+  "token_usage": {"prompt_tokens": 1923, "completion_tokens": 278, "total_tokens": 2201},
+  "retrieval_context": ["chunk_1: On April 2, 2024, at approximately 2318 hours, I, Officer K. Thompson, observed a black 2019 BMW 330i...", "chunk_2: Mr. Fitzgerald exhibited multiple signs of intoxication: slurred speech, bloodshot and watery eyes..."],
+  "temperature": 0.0
+}

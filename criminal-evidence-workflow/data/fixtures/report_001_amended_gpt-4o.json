@@ -1,0 +1,10 @@
+{
+  "report_id": "report_001_amended",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "On March 15, 2024, at approximately 0247 hours, Officer R. Martinez responded to an activated residential alarm at 1234 Elm Street, Oakland, CA. Investigation revealed a residential burglary in which the suspect gained entry by forcing open a rear kitchen window using a prying tool. Homeowner David Park confirmed the theft of an Apple MacBook Pro laptop ($2,400), a gold necklace with diamond pendant ($1,800), and approximately $350 in cash. Neighbor Jane Chen initially reported seeing a male, approximately 5'10\" in a dark hoodie, fleeing eastbound toward MLK Jr. Way. A subsequent follow-up investigation by Detective S. Okafor on March 18, 2024, produced an updated suspect description: additional witness Carlos Rivera observed a white male approximately 6 feet tall with a visible left forearm tattoo entering a dark-colored sedan (possibly a Honda Civic) on MLK Jr. Way. This revised description supersedes the initial account. Furthermore, AFIS analysis of latent fingerprints recovered from the window frame returned a potential match to Marcus Webb (DOB: 09/23/1991), a subject with prior residential burglary convictions (Cases #2021-04482, #2022-01197). An arrest warrant for Mr. Webb is being sought.",
+  "confidence": 0.91,
+  "token_usage": {"prompt_tokens": 2234, "completion_tokens": 318, "total_tokens": 2552},
+  "retrieval_context": ["chunk_1: On March 15, 2024, at approximately 0247 hours, I, Officer R. Martinez, was dispatched...", "chunk_2: ADDENDUM — Filed 2024-03-18 by Detective S. Okafor — additional witness Carlos Rivera..."],
+  "temperature": 0.0
+}

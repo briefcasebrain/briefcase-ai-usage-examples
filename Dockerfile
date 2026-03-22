@@ -43,4 +43,4 @@ CMD ["bash"]
 
 # Health check to ensure briefcase-ai is working
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD python3 -c "import briefcase_ai; print('briefcase-ai OK')" || exit 1
+  CMD python3 -c "import briefcase; print('briefcase-ai OK')" || exit 1

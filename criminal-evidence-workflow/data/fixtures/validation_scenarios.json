@@ -1,0 +1,22 @@
+[
+  {
+    "name": "valid_single_ref",
+    "prompt": "Summarize Case #2024-0892 from report_001",
+    "expected_status": "passed"
+  },
+  {
+    "name": "invalid_ref",
+    "prompt": "Summarize evidence from report_999",
+    "expected_status": "failed"
+  },
+  {
+    "name": "mixed_refs",
+    "prompt": "Compare report_001 and report_999",
+    "expected_status": "failed"
+  },
+  {
+    "name": "no_refs",
+    "prompt": "What is the standard format for police reports?",
+    "expected_status": "passed"
+  }
+]

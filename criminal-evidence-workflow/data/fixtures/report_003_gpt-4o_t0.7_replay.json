@@ -1,0 +1,10 @@
+{
+  "report_id": "report_003",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "Officer Nakamura responded to a reported assault near the amphitheater on Lake Merritt Boulevard on the evening of April 10, 2024. Andre Williams was found with injuries including a cut above his eye and bruising. Williams claimed he was the victim of an attempted robbery by strangers, but the incident is muddied by conflicting witness testimony. Lisa Tran counted three attackers and described a tall man in red; Michael O'Brien saw two people with a completely different suspect description; Priya Sharma could not identify the suspects clearly but heard Williams appear to recognize his attackers. The witnesses also disagree on the duration of the attack, whether anything was stolen, and which direction the suspects went. Given these contradictions, particularly around whether Williams knew his assailants, the true nature of this incident — whether a random robbery attempt or something more personal — remains an open question for investigators.",
+  "confidence": 0.71,
+  "token_usage": {"prompt_tokens": 2104, "completion_tokens": 221, "total_tokens": 2325},
+  "retrieval_context": ["chunk_1: Mr. Williams stated that he was walking along the lakeside path when he was approached by two individuals...", "chunk_2: Three witnesses were present but provided substantially conflicting accounts..."],
+  "temperature": 0.7
+}

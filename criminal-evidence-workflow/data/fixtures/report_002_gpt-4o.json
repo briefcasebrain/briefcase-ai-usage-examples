@@ -1,0 +1,10 @@
+{
+  "report_id": "report_002",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "On April 2, 2024, at approximately 2318 hours, Officer K. Thompson observed a black 2019 BMW 330i (plate 8ABC123) driven by Robert James Fitzgerald (DOB: 11/03/1985, SSN: 478-93-6152) traveling northbound on Broadway at 45 mph in a 25 mph zone while weaving between lanes. The vehicle ran a red light at Broadway and 14th Street, nearly striking pedestrian Sarah Kim in the crosswalk. Upon conducting a traffic stop, Officer Thompson detected a strong odor of alcohol and observed signs of intoxication including slurred speech and bloodshot eyes. Fitzgerald failed all three Standardized Field Sobriety Tests. A preliminary alcohol screening yielded 0.14% BAC at the scene, and subsequent Intoxilyzer 8000 testing at Oakland PD headquarters produced results of 0.13% and 0.12% BAC. Fitzgerald stated he was returning from a birthday party at Jack London Square. He was arrested for DUI (VC 23152(a) and (b)), booked at headquarters with bail set at $5,000, and his vehicle was impounded with a 30-day hold. His emergency contact, spouse Maria Fitzgerald, can be reached at (510) 555-8734. Court date scheduled for April 22, 2024.",
+  "confidence": 0.88,
+  "token_usage": {"prompt_tokens": 1923, "completion_tokens": 301, "total_tokens": 2224},
+  "retrieval_context": ["chunk_1: On April 2, 2024, at approximately 2318 hours, I, Officer K. Thompson, observed a black 2019 BMW 330i...", "chunk_2: Mr. Fitzgerald exhibited multiple signs of intoxication: slurred speech, bloodshot and watery eyes..."],
+  "temperature": 0.0
+}

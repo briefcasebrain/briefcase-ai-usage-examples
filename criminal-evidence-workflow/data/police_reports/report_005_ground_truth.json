@@ -1,0 +1,26 @@
+{
+  "report_id": "report_005",
+  "incident_type": "grand theft - retail",
+  "date": "2024-03-22",
+  "location": "Bay Area Electronics, 3200 Lakeshore Avenue, Oakland, CA 94610",
+  "key_facts": [
+    "two-person theft team used distraction technique",
+    "female suspect distracted employee with warranty questions",
+    "display case opened without visible force (magnetic key suspected)",
+    "four iPhone 15 Pro units stolen",
+    "total loss $3,996",
+    "suspects exited through rear emergency door onto Rand Avenue",
+    "suspects departed in light-colored SUV northbound on Rand Avenue"
+  ],
+  "entities": {
+    "officers": ["Ofc. D. Reyes #5891"],
+    "victims": ["Bay Area Electronics / Henry Yamamoto (manager)"],
+    "witnesses": ["Henry Yamamoto", "Maria Santos", "George Patterson"],
+    "suspects": ["white female ~25-30, light brown/blonde hair, dark green jacket", "white male, short hair, gray/dark top"],
+    "evidence": ["security camera footage", "written statements"],
+    "locations": ["Bay Area Electronics, 3200 Lakeshore Avenue", "Rand Avenue"],
+    "stolen_items": ["4x iPhone 15 Pro ($999 each)"]
+  },
+  "related_cases": ["2024-00378"],
+  "expected_summary_keywords": ["theft", "Bay Area Electronics", "organized", "magnetic key", "distraction", "iPhone", "Rand Avenue", "SUV"]
+}

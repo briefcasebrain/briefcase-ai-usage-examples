@@ -1,0 +1,10 @@
+{
+  "report_id": "report_001",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "On March 15, 2024, at approximately 0247 hours, Officer R. Martinez responded to an activated residential alarm at 1234 Elm Street, Oakland, CA. Investigation revealed a residential burglary in which the suspect gained entry by forcing open a rear kitchen window on the east side of the residence using a flat-head prying tool. The homeowner, David Park, confirmed the theft of an Apple MacBook Pro laptop (valued at $2,400), a gold necklace with diamond pendant (valued at $1,800), and approximately $350 in cash from a bedroom dresser. Neighbor Jane Chen reported hearing a loud noise at approximately 0230 hours and observed an unknown male, approximately 5'10\" tall wearing a dark hoodie and blue jeans, fleeing eastbound toward MLK Jr. Way. Ring doorbell camera footage from a neighboring residence at 1238 Elm Street captured a figure matching this description at 0225 and 0235 hours. Crime scene technicians recovered latent fingerprints from the window frame, which have been submitted for AFIS comparison. The case remains open and has been assigned to Detective S. Okafor of the Burglary Division.",
+  "confidence": 0.93,
+  "token_usage": {"prompt_tokens": 1847, "completion_tokens": 289, "total_tokens": 2136},
+  "retrieval_context": ["chunk_1: On March 15, 2024, at approximately 0247 hours, I, Officer R. Martinez, was dispatched to 1234 Elm Street...", "chunk_2: A neighbor, Jane Chen, residing at 1230 Elm Street, reported hearing a loud sound at approximately 0230 hours..."],
+  "temperature": 0.0
+}

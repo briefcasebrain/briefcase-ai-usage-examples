@@ -230,7 +230,7 @@ Every AI decision automatically creates a DecisionSnapshot containing:
 
 ### Prerequisites
 - Python 3.9+
-- Briefcase AI SDK (contact support@briefcasebrain.com for access)
+- Briefcase AI SDK (contact support@briefcaseai.org for access)
 
 ### Quick Start
 ```bash
@@ -252,7 +252,7 @@ jupyter notebook 01_agent_discovery/agent_discovery_walkthrough.ipynb
 
 This demo showcases Briefcase AI's enterprise AI governance capabilities. For production deployment:
 
-- **Enterprise Licensing**: Contact support@briefcasebrain.com
+- **Enterprise Licensing**: Contact support@briefcaseai.org
 - **Integration Support**: Professional services available
 - **Regulatory Guidance**: Compliance consulting for financial services
 - **Custom Development**: Additional governance features and integrations

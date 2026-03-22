@@ -1,0 +1,10 @@
+{
+  "report_id": "report_001",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "summary": "Officers investigated a break-in at a residential property located at 1234 Elm Street, Oakland, California on March 15, 2024. Entry was gained through a window on the east side of the home. The resident, David Park, reported several items missing including an Apple laptop, jewelry described as a gold pendant necklace, and cash totaling several hundred dollars. One neighbor heard sounds consistent with a break-in shortly after 2 AM and saw an individual leave the area on foot heading toward MLK Jr. Way. The person was described as a male of medium height in dark clothing. Security camera footage from another neighbor's property may have captured the suspect. Physical evidence including fingerprints was collected at the scene. Detectives are continuing to pursue leads in this active investigation.",
+  "confidence": 0.82,
+  "token_usage": {"prompt_tokens": 1847, "completion_tokens": 198, "total_tokens": 2045},
+  "retrieval_context": ["chunk_1: On March 15, 2024, at approximately 0247 hours, I, Officer R. Martinez, was dispatched to 1234 Elm Street...", "chunk_2: A neighbor, Jane Chen, residing at 1230 Elm Street, reported hearing a loud sound at approximately 0230 hours..."],
+  "temperature": 0.7
+}

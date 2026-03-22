@@ -1,0 +1,10 @@
+{
+  "report_id": "report_003",
+  "model": "claude-sonnet",
+  "provider": "anthropic",
+  "summary": "An aggravated assault was reported on April 10, 2024 at the 500 block of Lake Merritt Boulevard, Oakland. Victim Andre Williams presented with facial lacerations, cheekbone bruising, and forearm abrasions consistent with a physical altercation. Williams alleges an attempted robbery by unknown individuals. The investigation is significantly complicated by irreconcilable witness testimony. Three witnesses present contradictory accounts across nearly every material detail: the number of assailants (two versus three), physical descriptions of the primary attacker (ranging from a tall Black male in a red jacket to a Hispanic male of average build in a dark jacket), the duration of the assault (30 seconds versus two minutes), whether property was actually taken, and critically, the direction in which suspects fled — with each witness reporting a different cardinal direction. Most notably, witness Priya Sharma states she heard Williams shout 'I know you' at the fleeing suspects, directly contradicting Williams' own statement that the attackers were unknown to him. This inconsistency raises questions about the nature of the incident. The case has been assigned to Detective V. Popov and security camera footage from Lakeshore Avenue businesses is being sought via subpoena.",
+  "confidence": 0.58,
+  "token_usage": {"prompt_tokens": 2104, "completion_tokens": 287, "total_tokens": 2391},
+  "retrieval_context": ["chunk_1: Mr. Williams stated that he was walking along the lakeside path when he was approached by two individuals...", "chunk_2: Three witnesses were present but provided substantially conflicting accounts..."],
+  "temperature": 0.0
+}
