@@ -26,27 +26,25 @@ python patterns/02_bitemporal_evidence.py   # or any other
 | 08 | [`DriftCalculator`](08_drift_detection.py) | Output-distribution drift: baseline vs. current window. |
 | 09 | [`Sanitizer`](09_pii_sanitization.py) | PII detection + redaction for free text and structured payloads. |
 | 10 | [`GuardrailPipeline`](10_guardrail_pipeline.py) | Compose multiple allow/deny stages; `FIRST_DENY` short-circuits. |
-| 11 | Decision replay via `DecisionSnapshot` | Re-run a candidate against stored inputs; diff outputs. |
+| 11 | [`DecisionSnapshot` replay](11_decision_replay.py) | Re-run a candidate against stored inputs; diff outputs. |
 
 ## Composition matrix
 
 Rows = primitives. Columns = example suites in this repo that compose them. A `✓` means the suite actively demonstrates that primitive in its capstone or main narrative.
 
-| Primitive | agentic-payments | 02_ofac_sanctions | 01_credit_underwriting* | 05_mortgage_fair_lending* | 07_aml_transaction_monitoring* | 14_algo_trading_surveillance* | criminal-evidence-workflow | vantara-briefcase-demo |
+| Primitive | agentic-payments | 02_ofac_sanctions | 01_credit_underwriting | 05_mortgage_fair_lending | 07_aml_transaction_monitoring | 14_algo_trading_surveillance | criminal-evidence-workflow | vantara-briefcase-demo |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | 01 `@capture` + `DecisionSnapshot` |   | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| 02 `BitemporalRecord` | ✓ | ✓ | ⏳ | ⏳ | ⏳ | ⏳ |   |   |
-| 03 `append_correction` | ✓ | ✓ | ⏳ | ⏳ | ⏳ | ⏳ |   |   |
-| 04 `AsOfView` | ✓ | ✓ | ⏳ | ⏳ | ⏳ | ⏳ |   |   |
+| 02 `BitemporalRecord` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |   |   |
+| 03 `append_correction` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |   |   |
+| 04 `AsOfView` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |   |   |
 | 05 `PolicyRegistry` | ✓ | ✓ |   |   |   |   |   |   |
-| 06 `ExaminerBundle` | ✓ | ✓ | ⏳ | ⏳ | ⏳ | ⏳ |   |   |
+| 06 `ExaminerBundle` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |   |   |
 | 07 `CostCalculator` |   |   |   |   |   |   |   | ✓ |
 | 08 `DriftCalculator` |   |   |   |   |   |   | ✓ | ✓ |
 | 09 `Sanitizer` |   |   |   |   |   |   | ✓ |   |
 | 10 `GuardrailPipeline` |   |   |   |   |   |   | ✓ |   |
 | 11 Decision replay |   |   |   |   |   |   | ✓ |   |
-
-\* Rollout in progress — see [plan](../../.claude/plans/move-the-content-from-vivid-anchor.md). `02_ofac_sanctions` is the reference implementation; the other four regulatory examples will follow.
 
 ## How to read this library
 
