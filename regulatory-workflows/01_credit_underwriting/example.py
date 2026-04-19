@@ -14,10 +14,21 @@ Demonstrates:
 
 import sys
 import os
+import json
 import uuid
 import random
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any
+
+# Bitemporal replay capstone (Phase 3 of replay-pattern rollout — see
+# regulatory-workflows/02_ofac_sanctions for the reference implementation).
+from briefcase.bitemporal import (
+    AsOfView, BitemporalRecord, InMemoryBitemporalStore, append_correction,
+)
+from briefcase.compliance import BundleIntegrityError, ExaminerBundle
+from briefcase.routing import (
+    AgentRoutingDecision, PolicyRegistry, PolicyRule, PolicyVersion,
+)
 
 # Add shared module to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
@@ -265,6 +276,103 @@ def main():
 
     if validation_result['missing_fields']:
         print(f"Missing Fields: {', '.join(validation_result['missing_fields'])}")
+
+    # =====================================================================
+    # BITEMPORAL REPLAY DEMONSTRATION
+    # =====================================================================
+    # The capture above records WHAT the system decided. This section adds
+    # the replay layer — proving WHAT WAS KNOWN at decision time, so an
+    # auditor can reconstruct the decision offline against the bureau file
+    # as it stood on the day of adjudication, not today's version.
+    print("=" * 60)
+    print("BITEMPORAL REPLAY DEMONSTRATION")
+    print("=" * 60)
+
+    utc = timezone.utc
+    decision_time = datetime.now(utc) - timedelta(days=90)
+    correction_time = datetime.now(utc)
+
+    bureau = InMemoryBitemporalStore()
+    tradeline = BitemporalRecord.new(
+        key="bureau:tl-7742",
+        valid_time=decision_time,
+        value={"lender": "OldBank", "balance": 2800, "status": "90_days_late"},
+        source="equifax",
+        source_trust_level="primary",
+        transaction_time=decision_time,
+    )
+    bureau.append(tradeline)
+    print(f"Seeded bureau store: tradeline tl-7742 active at {decision_time.date()}")
+
+    # Consumer files FCRA dispute; tradeline removed 90 days later.
+    append_correction(
+        bureau, tradeline,
+        corrected_value={"lender": "OldBank", "balance": 0, "status": "removed_per_fcra_dispute"},
+        transaction_time=correction_time,
+    )
+    print(f"Correction appended: tradeline removed under FCRA at {correction_time.date()}")
+
+    live = bureau.latest("bureau:tl-7742").value
+    print(f"\nLive view (today):    status={live['status']}")
+    with AsOfView(bureau, transaction_time=decision_time) as view:
+        replay = view.latest("bureau:tl-7742").value
+        print(f"As-of decision day:   status={replay['status']}")
+    print(
+        "\nA credit underwriting adverse-action defense requires reconstructing\n"
+        "the bureau file as-of the decision date. The live view now shows the\n"
+        "tradeline as removed; the as-of replay correctly shows it was present\n"
+        "and delinquent when the decision was made."
+    )
+
+    underwriting_policy = PolicyVersion(
+        policy_id="credit_underwriting",
+        version="1.0.0",
+        description="Deny if any tradeline 90+ days delinquent; else grade-based approval.",
+        rules=[PolicyRule(
+            rule_id="deny_on_delinquency",
+            condition={"has_90_day_delinquent": True},
+            choice="deny",
+            rationale="Derogatory tradeline within look-back window",
+        )],
+        default_choice="approve",
+    )
+    registry = PolicyRegistry()
+    registry.publish(underwriting_policy, valid_from=decision_time, transaction_time=decision_time)
+
+    routing_decision = AgentRoutingDecision(
+        decision_id=stored_decision_id,
+        use_case="credit_underwriting",
+        context={"applicant": "app-42", "decision_date": decision_time.isoformat()},
+        candidates=["approve", "deny"],
+        selected="deny",
+        policy_id="credit_underwriting",
+        policy_version="1.0.0",
+        matched_rule_id="deny_on_delinquency",
+        evidence_refs=[tradeline.record_id],
+        rationale="tradeline tl-7742 90 days delinquent at decision time",
+        decided_at=decision_time,
+    )
+
+    bundle = ExaminerBundle.build(
+        routing_decision, evidence_store=bureau, policy_registry=registry,
+        metadata={"regulation": "ECOA/FCRA", "decision_id": stored_decision_id},
+    )
+    print(f"\nExaminerBundle assembled:")
+    print(f"  content_hash:    {bundle.content_hash}")
+    print(f"  policy version:  v{bundle.policy['version']}")
+    print(f"  evidence rows:   {len(bundle.evidence)}")
+
+    bundle.verify()
+    print(f"\nverify() on untouched bundle:    OK")
+    payload = bundle.to_json(indent=2)
+    ExaminerBundle.from_json(payload).verify()
+    print(f"verify() after JSON round-trip:  OK")
+    tampered = json.loads(payload)
+    tampered["decision"]["selected"] = "approve"
+    try:
+        ExaminerBundle.from_dict(tampered).verify()
+    except BundleIntegrityError as e:
+        print(f"verify() on tampered bundle:     REJECTED ({type(e).__name__})")
 
     print(f"\nSUCCESS: Credit underwriting audit trail demonstration completed")
     print(f"Decision ID: {stored_decision_id}")

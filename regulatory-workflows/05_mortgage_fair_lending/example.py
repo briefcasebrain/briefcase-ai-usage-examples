@@ -15,10 +15,21 @@ Demonstrates:
 
 import sys
 import os
+import json
 import uuid
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List
+
+# Bitemporal replay capstone (Phase 3 of replay-pattern rollout — see
+# regulatory-workflows/02_ofac_sanctions for the reference implementation).
+from briefcase.bitemporal import (
+    AsOfView, BitemporalRecord, InMemoryBitemporalStore, append_correction,
+)
+from briefcase.compliance import BundleIntegrityError, ExaminerBundle
+from briefcase.routing import (
+    AgentRoutingDecision, PolicyRegistry, PolicyRule, PolicyVersion,
+)
 
 # Add shared module to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
@@ -382,6 +393,105 @@ def main():
     print("SUCCESS: Full historical replay capability for any date range")
     print("SUCCESS: DOJ/CFPB examination readiness")
     print("SUCCESS: Model change impact analysis")
+
+    # =====================================================================
+    # BITEMPORAL REPLAY DEMONSTRATION
+    # =====================================================================
+    # A fair-lending investigation 18 months after a denial needs the
+    # appraisal record as it stood at decision time — not the revised
+    # appraisal that was filed after the borrower's complaint.
+    print("=" * 60)
+    print("BITEMPORAL REPLAY DEMONSTRATION")
+    print("=" * 60)
+
+    utc = timezone.utc
+    decision_time = datetime.now(utc) - timedelta(days=180)
+    correction_time = datetime.now(utc)
+
+    appraisals = InMemoryBitemporalStore()
+    appraisal_v1 = BitemporalRecord.new(
+        key="appraisal:prop-12a",
+        valid_time=decision_time,
+        value={"appraised_value": 312_000, "comps_used": 3, "appraiser_cert": "CA-44281"},
+        source="appraisal_vendor",
+        source_trust_level="primary",
+        transaction_time=decision_time,
+        metadata={"property_address_hash": "sha256:...redacted..."},
+    )
+    appraisals.append(appraisal_v1)
+    print(f"Seeded appraisal store: prop-12a @ ${appraisal_v1.value['appraised_value']:,} at {decision_time.date()}")
+
+    # Borrower files fair-lending complaint; appraisal revised upward after
+    # review finds comp selection bias. Correction appended, original kept.
+    append_correction(
+        appraisals, appraisal_v1,
+        corrected_value={"appraised_value": 342_000, "comps_used": 5, "appraiser_cert": "CA-44281",
+                         "revision_reason": "comp_reselection_per_fair_lending_review"},
+        transaction_time=correction_time,
+    )
+    print(f"Correction appended: revised to $342,000 at {correction_time.date()}")
+
+    live = appraisals.latest("appraisal:prop-12a").value
+    print(f"\nLive view (today):    ${live['appraised_value']:,}")
+    with AsOfView(appraisals, transaction_time=decision_time) as view:
+        replay = view.latest("appraisal:prop-12a").value
+        print(f"As-of decision day:   ${replay['appraised_value']:,}")
+    print(
+        "\nDisparate-impact analysis must use the appraisal that was actually\n"
+        "in the underwriting record at decision time. The live value reflects\n"
+        "a post-complaint revision; the as-of replay preserves the original."
+    )
+
+    hmda_policy = PolicyVersion(
+        policy_id="mortgage_underwriting",
+        version="1.0.0",
+        description="Approve if LTV <= 80% using appraised value at decision time.",
+        rules=[PolicyRule(
+            rule_id="ltv_ceiling",
+            condition={"ltv_pct": {"lte": 80}},
+            choice="approve",
+            rationale="Meets LTV policy ceiling",
+        )],
+        default_choice="deny",
+    )
+    registry = PolicyRegistry()
+    registry.publish(hmda_policy, valid_from=decision_time, transaction_time=decision_time)
+
+    sample_decision_id = all_decisions[0] if all_decisions else "decision-sample"
+    routing_decision = AgentRoutingDecision(
+        decision_id=sample_decision_id,
+        use_case="mortgage_underwriting",
+        context={"loan_amount": 250_000, "appraised_value": appraisal_v1.value["appraised_value"]},
+        candidates=["approve", "deny"],
+        selected="deny",
+        policy_id="mortgage_underwriting",
+        policy_version="1.0.0",
+        matched_rule_id="ltv_ceiling",
+        evidence_refs=[appraisal_v1.record_id],
+        rationale="LTV 80.1% at appraised value of $312k exceeds policy ceiling",
+        decided_at=decision_time,
+    )
+
+    bundle = ExaminerBundle.build(
+        routing_decision, evidence_store=appraisals, policy_registry=registry,
+        metadata={"regulation": "HMDA/ECOA", "decision_id": sample_decision_id},
+    )
+    print(f"\nExaminerBundle assembled:")
+    print(f"  content_hash:    {bundle.content_hash}")
+    print(f"  policy version:  v{bundle.policy['version']}")
+    print(f"  evidence rows:   {len(bundle.evidence)}")
+
+    bundle.verify()
+    print(f"\nverify() on untouched bundle:    OK")
+    payload = bundle.to_json(indent=2)
+    ExaminerBundle.from_json(payload).verify()
+    print(f"verify() after JSON round-trip:  OK")
+    tampered = json.loads(payload)
+    tampered["decision"]["selected"] = "approve"
+    try:
+        ExaminerBundle.from_dict(tampered).verify()
+    except BundleIntegrityError as e:
+        print(f"verify() on tampered bundle:     REJECTED ({type(e).__name__})")
 
     print(f"\nSUCCESS: Mortgage fair lending audit trail demonstration completed")
     print(f"Total decisions stored: {len(all_decisions)}")

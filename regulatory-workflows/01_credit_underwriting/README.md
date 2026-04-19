@@ -193,3 +193,15 @@ This example prepares responses for common examiner inquiries:
 **Related Workflows:**
 - [05. Mortgage Fair Lending](../05_mortgage_fair_lending/README.md) - HMDA-specific fair lending analysis
 - [10. Collections & Debt Management](../10_collections_debt/README.md) - Post-origination compliance
+
+## Bitemporal Replay Demonstration
+
+The capstone section at the end of `example.py` (and in the walkthrough notebook) adds a replay layer on top of the existing tag-based audit trail:
+
+- **Bitemporal evidence store** — the domain's inputs (bureau file, appraisal, KYC snapshot, market-data print, etc.) are stored append-only with both `valid_time` and `transaction_time`.
+- **`append_correction()`** — a domain-authentic correction scenario (see the example) is appended with a later `transaction_time`. The original record is preserved.
+- **`AsOfView`** — clamps reads to the original decision day, reconstructing what the system actually saw without contacting upstream.
+- **`ExaminerBundle`** — emits a self-contained, content-addressed JSON artifact. `verify()` OK on untouched, REJECTED on any tamper.
+
+For the primitives in isolation, see [`patterns/`](../../patterns/). For the full walkthrough of these primitives composed into a cross-border payments narrative, see [`agentic-payments/`](../../agentic-payments/).
+

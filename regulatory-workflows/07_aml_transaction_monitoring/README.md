@@ -212,3 +212,15 @@ This example provides comprehensive documentation for AML compliance examination
 **Related Workflows:**
 - [02. OFAC Sanctions Screening](../02_ofac_sanctions/README.md) - Customer and transaction screening
 - [06. KYC/KYB Third-Party](../06_kyc_kyb_third_party/README.md) - Customer identification and due diligence
+
+## Bitemporal Replay Demonstration
+
+The capstone section at the end of `example.py` (and in the walkthrough notebook) adds a replay layer on top of the existing tag-based audit trail:
+
+- **Bitemporal evidence store** — the domain's inputs (bureau file, appraisal, KYC snapshot, market-data print, etc.) are stored append-only with both `valid_time` and `transaction_time`.
+- **`append_correction()`** — a domain-authentic correction scenario (see the example) is appended with a later `transaction_time`. The original record is preserved.
+- **`AsOfView`** — clamps reads to the original decision day, reconstructing what the system actually saw without contacting upstream.
+- **`ExaminerBundle`** — emits a self-contained, content-addressed JSON artifact. `verify()` OK on untouched, REJECTED on any tamper.
+
+For the primitives in isolation, see [`patterns/`](../../patterns/). For the full walkthrough of these primitives composed into a cross-border payments narrative, see [`agentic-payments/`](../../agentic-payments/).
+

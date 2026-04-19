@@ -41,15 +41,26 @@ The example simulates a complete sanctions screening workflow with integrated co
 
 ## Files in This Directory
 
-- `example.py` - Complete Python implementation of OFAC-compliant sanctions screening workflow
-- `ofac_sanctions_walkthrough.ipynb` - Interactive Jupyter notebook with detailed compliance guidance and screening scenarios
+- `example.py` - Complete Python implementation of OFAC-compliant sanctions screening workflow, including a **Bitemporal Replay Demonstration** capstone (see below)
+- `ofac_sanctions_walkthrough.ipynb` - Interactive Jupyter notebook with detailed compliance guidance, screening scenarios, and the replay capstone as Step 10
+
+## Bitemporal Replay Demonstration
+
+The capstone section at the end of `example.py` (and Step 10 of the notebook) layers a replay primitive on top of the tag-based audit trail:
+
+- **`watchlist_version_sha` tag** (earlier sections): proves *which* SDN list version was used.
+- **Bitemporal SDN store + `AsOfView`** (capstone): captures *what was in* that version. An examiner can replay the screening against the list as it stood on decision day — without contacting OFAC — because the store is append-only and corrections are added with a later `transaction_time`.
+- **`ExaminerBundle`**: emits a single self-contained JSON artifact joining decision + policy + evidence with a SHA-256 content hash. `verify()` OK on untouched, REJECTED on any tamper.
+
+The correction scenario is domain-authentic: OFAC delists an entity on appeal 30 days after the original screening. The live view would now clear the transaction; the as-of replay still blocks it.
+
+For the full walkthrough of these primitives (`BitemporalRecord`, `AsOfView`, `PolicyRegistry`, `ExaminerBundle`) composed into an agentic cross-border payments narrative, see [`agentic-payments/`](../../agentic-payments/).
 
 ## Prerequisites
 
 **Required Dependencies:**
 ```bash
-pip install briefcase-ai
-pip install jupyter  # For notebook usage
+pip install -r ../requirements.txt   # briefcase-ai[bitemporal,compliance,routing] + jupyter
 ```
 
 **Briefcase AI SDK:**

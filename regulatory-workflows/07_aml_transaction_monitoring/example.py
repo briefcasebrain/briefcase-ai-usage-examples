@@ -15,10 +15,21 @@ Demonstrates:
 
 import sys
 import os
+import json
 import uuid
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any
+
+# Bitemporal replay capstone (Phase 3 of replay-pattern rollout — see
+# regulatory-workflows/02_ofac_sanctions for the reference implementation).
+from briefcase.bitemporal import (
+    AsOfView, BitemporalRecord, InMemoryBitemporalStore, append_correction,
+)
+from briefcase.compliance import BundleIntegrityError, ExaminerBundle
+from briefcase.routing import (
+    AgentRoutingDecision, PolicyRegistry, PolicyRule, PolicyVersion,
+)
 
 # Add shared module to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
@@ -387,6 +398,109 @@ def main():
         decision_ids.append(stored_id_1)
     if 'stored_id_2' in locals():
         decision_ids.append(stored_id_2)
+
+    # =====================================================================
+    # BITEMPORAL REPLAY DEMONSTRATION
+    # =====================================================================
+    # AML alert defense requires reconstructing the counterparty's KYC
+    # snapshot — particularly beneficial-owner records — as of the alert
+    # date. Beneficial-owner restatements are common and the live view
+    # won't match what the system saw at alert time.
+    print("=" * 60)
+    print("BITEMPORAL REPLAY DEMONSTRATION")
+    print("=" * 60)
+
+    utc = timezone.utc
+    decision_time = datetime.now(utc) - timedelta(days=120)
+    correction_time = datetime.now(utc)
+
+    kyc = InMemoryBitemporalStore()
+    cp_kyc = BitemporalRecord.new(
+        key="kyc:cp-88",
+        valid_time=decision_time,
+        value={"counterparty_id": "cp-88", "beneficial_owner": "J. Smith",
+               "jurisdiction": "KY", "pep_flag": False, "screening_score": 0.12},
+        source="internal_kyc",
+        source_trust_level="primary",
+        transaction_time=decision_time,
+    )
+    kyc.append(cp_kyc)
+    print(f"Seeded KYC store: cp-88 beneficial_owner='J. Smith' at {decision_time.date()}")
+
+    # Enhanced due diligence later reveals the real beneficial owner is a
+    # PEP; KYC record is restated. Append the correction, preserving the
+    # record the system actually saw at alert time.
+    append_correction(
+        kyc, cp_kyc,
+        corrected_value={"counterparty_id": "cp-88", "beneficial_owner": "H. Volkov (PEP)",
+                         "jurisdiction": "KY", "pep_flag": True, "screening_score": 0.91,
+                         "restatement_reason": "edd_disclosed_ultimate_owner"},
+        transaction_time=correction_time,
+    )
+    print(f"Correction appended: beneficial owner restated to PEP at {correction_time.date()}")
+
+    live = kyc.latest("kyc:cp-88").value
+    print(f"\nLive view (today):    pep_flag={live['pep_flag']}  score={live['screening_score']}")
+    with AsOfView(kyc, transaction_time=decision_time) as view:
+        replay = view.latest("kyc:cp-88").value
+        print(f"As-of alert day:      pep_flag={replay['pep_flag']}  score={replay['screening_score']}")
+    print(
+        "\nA SAR review 18 months later might ask 'why didn't you escalate this\n"
+        "counterparty immediately?' The replay answers: on the alert date, the\n"
+        "system saw no PEP flag. The upgrade came from later EDD, not from a\n"
+        "missed signal."
+    )
+
+    aml_policy = PolicyVersion(
+        policy_id="aml_monitoring",
+        version="4.1.0",
+        description="Alert on screening_score > 0.7 OR pep_flag OR sanctioned_jurisdiction.",
+        rules=[PolicyRule(
+            rule_id="threshold_alert",
+            condition={"screening_score_gt": 0.7},
+            choice="alert",
+            rationale="Score threshold exceeded",
+        )],
+        default_choice="clear",
+    )
+    registry = PolicyRegistry()
+    registry.publish(aml_policy, valid_from=decision_time, transaction_time=decision_time)
+
+    sample_decision_id = stored_id_1 if 'stored_id_1' in locals() else "decision-sample"
+    routing_decision = AgentRoutingDecision(
+        decision_id=sample_decision_id,
+        use_case="aml_monitoring",
+        context={"counterparty": "cp-88", "notional_usd": 45_000},
+        candidates=["clear", "alert", "sar_file"],
+        selected="clear",
+        policy_id="aml_monitoring",
+        policy_version="4.1.0",
+        matched_rule_id="threshold_alert",
+        evidence_refs=[cp_kyc.record_id],
+        rationale="screening_score 0.12 under 0.7 threshold; no PEP flag at decision time",
+        decided_at=decision_time,
+    )
+
+    bundle = ExaminerBundle.build(
+        routing_decision, evidence_store=kyc, policy_registry=registry,
+        metadata={"regulation": "BSA/AML", "decision_id": sample_decision_id},
+    )
+    print(f"\nExaminerBundle assembled:")
+    print(f"  content_hash:    {bundle.content_hash}")
+    print(f"  policy version:  v{bundle.policy['version']}")
+    print(f"  evidence rows:   {len(bundle.evidence)}")
+
+    bundle.verify()
+    print(f"\nverify() on untouched bundle:    OK")
+    payload = bundle.to_json(indent=2)
+    ExaminerBundle.from_json(payload).verify()
+    print(f"verify() after JSON round-trip:  OK")
+    tampered = json.loads(payload)
+    tampered["decision"]["selected"] = "alert"
+    try:
+        ExaminerBundle.from_dict(tampered).verify()
+    except BundleIntegrityError as e:
+        print(f"verify() on tampered bundle:     REJECTED ({type(e).__name__})")
 
     print(f"\nSUCCESS: AML transaction monitoring audit trail demonstration completed")
     print(f"Decisions stored: {len(decision_ids)}")

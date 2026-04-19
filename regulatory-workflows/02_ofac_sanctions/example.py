@@ -17,8 +17,9 @@ import sys
 import os
 import uuid
 import hashlib
+import json
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List
 
 # Add shared module to path
@@ -32,6 +33,23 @@ except ImportError as e:
     print(f"Error importing required modules: {e}")
     print("Please check the shared backend module is available")
     sys.exit(1)
+
+# Imports for the bitemporal replay capstone (Phase 1 of the replay pattern
+# rollout across regulatory examples — see agentic-payments/ for the same
+# primitives composed into a cross-border payments narrative).
+from briefcase.bitemporal import (
+    AsOfView,
+    BitemporalRecord,
+    InMemoryBitemporalStore,
+    append_correction,
+)
+from briefcase.compliance import BundleIntegrityError, ExaminerBundle
+from briefcase.routing import (
+    AgentRoutingDecision,
+    PolicyRegistry,
+    PolicyRule,
+    PolicyVersion,
+)
 
 
 def generate_watchlist_sha() -> str:
@@ -338,6 +356,139 @@ def main():
     print()
     print("SUCCESS: Both transactions maintain immutable watchlist version provenance")
     print("SUCCESS: OFAC examination defense: Complete audit trail with exact watchlist versions")
+
+    # =====================================================================
+    # BITEMPORAL REPLAY DEMONSTRATION
+    # =====================================================================
+    # The watchlist_version_sha above proves WHICH version was used.
+    # The bitemporal store below proves WHAT was in it — so the same
+    # screening can be replayed offline, without re-contacting OFAC.
+    print("=" * 60)
+    print("BITEMPORAL REPLAY DEMONSTRATION")
+    print("=" * 60)
+
+    utc = timezone.utc
+    decision_time = datetime.now(utc) - timedelta(days=30)
+    correction_time = datetime.now(utc)
+
+    # Seed a bitemporal SDN store with the entries that were live at decision time.
+    sdn_store = InMemoryBitemporalStore()
+    petrov = BitemporalRecord.new(
+        key="ofac:entity-petrov",
+        valid_time=decision_time,
+        value={"name": "Aleksei Petrov", "program": "RUSSIA-EO14024", "listed": True},
+        source="ofac",
+        source_trust_level="primary",
+        transaction_time=decision_time,
+        metadata={"sdn_list_version": current_watchlist_sha},
+    )
+    kozlov = BitemporalRecord.new(
+        key="ofac:entity-kozlov",
+        valid_time=decision_time,
+        value={"name": "Viktor Kozlov", "program": "RUSSIA-EO14024", "listed": True},
+        source="ofac",
+        source_trust_level="primary",
+        transaction_time=decision_time,
+        metadata={"sdn_list_version": current_watchlist_sha},
+    )
+    sdn_store.append(petrov)
+    sdn_store.append(kozlov)
+    print(f"Seeded bitemporal SDN store: {len(sdn_store)} entries at decision_time={decision_time.date()}")
+
+    # OFAC delists Petrov on appeal, 30 days after the screening. The original
+    # record is preserved; the correction is appended with a later transaction_time.
+    append_correction(
+        sdn_store,
+        petrov,
+        corrected_value={
+            "name": "Aleksei Petrov",
+            "program": "RUSSIA-EO14024",
+            "listed": False,
+            "delisted_reason": "appeal_granted",
+        },
+        transaction_time=correction_time,
+    )
+    print(f"Correction appended: Petrov delisted on appeal at transaction_time={correction_time.date()}")
+
+    # Replay: naive (today's view) vs as-of (decision day).
+    live_entry = sdn_store.latest("ofac:entity-petrov").value
+    print(f"\nLive view (today):                listed={live_entry['listed']} → would CLEAR")
+    with AsOfView(sdn_store, transaction_time=decision_time) as view:
+        replay_entry = view.latest("ofac:entity-petrov").value
+        print(f"As-of decision day:               listed={replay_entry['listed']} → would BLOCK")
+    print("\nThe as-of replay reconstructs the SDN list as it stood on decision day")
+    print("without contacting OFAC. Same code path as production — only the clamp changes.")
+
+    # Build an ExaminerBundle — a self-contained, content-addressed artifact
+    # that an auditor can verify offline. Complements the DecisionSnapshot:
+    # the snapshot captures WHAT happened; the bundle captures WHAT WAS KNOWN.
+    screening_policy = PolicyVersion(
+        policy_id="ofac_screening",
+        version="1.0.0",
+        description="Block on exact SDN match; escalate on score > 0.75; else clear.",
+        rules=[
+            PolicyRule(
+                rule_id="sdn_match_block",
+                condition={"sdn_match": True},
+                choice="block",
+                rationale="Exact match against active SDN entry",
+            ),
+        ],
+        default_choice="clear",
+    )
+    policy_registry = PolicyRegistry()
+    policy_registry.publish(
+        screening_policy, valid_from=decision_time, transaction_time=decision_time
+    )
+
+    routing_decision = AgentRoutingDecision(
+        decision_id=stored_decision_id,
+        use_case="sanctions_screening",
+        context={
+            "originator": payment_data["originator_name"],
+            "notional_usd": payment_data["payment_amount"],
+        },
+        candidates=["clear", "escalate", "block"],
+        selected=screening_result["decision"],
+        policy_id="ofac_screening",
+        policy_version="1.0.0",
+        matched_rule_id="sdn_match_block",
+        evidence_refs=[petrov.record_id],
+        rationale=f"Matched SDN entity: {screening_result['matched_entity']}",
+        decided_at=decision_time,
+    )
+
+    bundle = ExaminerBundle.build(
+        routing_decision,
+        evidence_store=sdn_store,
+        policy_registry=policy_registry,
+        metadata={"transaction_id": transaction_id, "regulation": "OFAC/BSA"},
+    )
+
+    print(f"\nExaminerBundle assembled:")
+    print(f"  content_hash:            {bundle.content_hash}")
+    print(f"  policy captured:         v{bundle.policy['version']}")
+    print(f"  evidence rows:           {len(bundle.evidence)}")
+
+    bundle.verify()
+    print(f"\nverify() on untouched bundle:    OK")
+
+    payload = bundle.to_json(indent=2)
+    ExaminerBundle.from_json(payload).verify()
+    print(f"verify() after JSON round-trip:  OK")
+
+    # Tamper check: flip the decision to "clear" and confirm verify() rejects.
+    tampered_dict = json.loads(payload)
+    tampered_dict["decision"]["selected"] = "clear"
+    try:
+        ExaminerBundle.from_dict(tampered_dict).verify()
+    except BundleIntegrityError as e:
+        print(f"verify() on tampered bundle:     REJECTED ({type(e).__name__})")
+
+    print("")
+    print("The watchlist_version_sha tag (earlier) proves WHICH list was used.")
+    print("The ExaminerBundle (here) captures the list CONTENT — so an auditor")
+    print("can verify the decision offline, even if OFAC later amends the list.")
 
     print(f"\nSUCCESS: OFAC sanctions screening audit trail demonstration completed")
     print(f"Primary Decision ID: {stored_decision_id}")

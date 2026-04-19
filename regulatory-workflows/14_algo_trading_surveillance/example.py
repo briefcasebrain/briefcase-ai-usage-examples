@@ -15,11 +15,22 @@ Demonstrates:
 
 import sys
 import os
+import json
 import uuid
 import random
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List
+
+# Bitemporal replay capstone (Phase 3 of replay-pattern rollout — see
+# regulatory-workflows/02_ofac_sanctions for the reference implementation).
+from briefcase.bitemporal import (
+    AsOfView, BitemporalRecord, InMemoryBitemporalStore, append_correction,
+)
+from briefcase.compliance import BundleIntegrityError, ExaminerBundle
+from briefcase.routing import (
+    AgentRoutingDecision, PolicyRegistry, PolicyRule, PolicyVersion,
+)
 
 # Add shared module to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
@@ -419,6 +430,106 @@ def main():
     print("SUCCESS: Spoofing/layering pattern detection support")
     print("SUCCESS: SEC Rule 17a-4 business records compliance")
     print("SUCCESS: FINRA surveillance investigation readiness")
+
+    # =====================================================================
+    # BITEMPORAL REPLAY DEMONSTRATION
+    # =====================================================================
+    # FINRA surveillance replay requires the market-data print stream as it
+    # stood when the order decision was made. Exchange "busts" (price
+    # corrections after the fact) are frequent; a live query reads the
+    # post-bust value and look-ahead biases the whole review.
+    print("=" * 60)
+    print("BITEMPORAL REPLAY DEMONSTRATION")
+    print("=" * 60)
+
+    utc = timezone.utc
+    decision_time = datetime.now(utc) - timedelta(hours=6)
+    correction_time = datetime.now(utc)
+
+    prints = InMemoryBitemporalStore()
+    print_at_decision = BitemporalRecord.new(
+        key="md:AAPL-20250401-140522",
+        valid_time=decision_time,
+        value={"symbol": "AAPL", "px": 178.4250, "size": 500, "exchange": "NASDAQ"},
+        source="nasdaq_tape",
+        source_trust_level="primary",
+        transaction_time=decision_time,
+    )
+    prints.append(print_at_decision)
+    print(f"Seeded market-data store: AAPL print px=${print_at_decision.value['px']:.4f} at {decision_time}")
+
+    # Exchange busts the print 6 hours later — the original was erroneous.
+    # The correction is appended; the original is preserved so surveillance
+    # can replay the order decision against the data actually seen.
+    append_correction(
+        prints, print_at_decision,
+        corrected_value={"symbol": "AAPL", "px": 178.3000, "size": 500, "exchange": "NASDAQ",
+                         "bust_reason": "erroneous_print_tape_cleanup"},
+        transaction_time=correction_time,
+    )
+    print(f"Correction appended: print busted to ${178.30:.4f} at {correction_time}")
+
+    live = prints.latest("md:AAPL-20250401-140522").value
+    print(f"\nLive view (today):     px=${live['px']:.4f}")
+    with AsOfView(prints, transaction_time=decision_time) as view:
+        replay = view.latest("md:AAPL-20250401-140522").value
+        print(f"As-of decision time:   px=${replay['px']:.4f}")
+    print(
+        "\nA naive surveillance query reads the current (post-bust) tape and\n"
+        "concludes the order was priced off-market. The as-of replay shows the\n"
+        "trader was quoting the best available price at decision time."
+    )
+
+    surveillance_policy = PolicyVersion(
+        policy_id="algo_execution",
+        version="2.3.1",
+        description="Flag orders whose px deviates >0.50% from VWAP at submission.",
+        rules=[PolicyRule(
+            rule_id="vwap_band",
+            condition={"px_deviation_bps_gt": 50},
+            choice="flag_for_review",
+            rationale="Price exceeds VWAP band",
+        )],
+        default_choice="clean",
+    )
+    registry = PolicyRegistry()
+    registry.publish(surveillance_policy, valid_from=decision_time, transaction_time=decision_time)
+
+    sample_decision_id = normal_stored_id if 'normal_stored_id' in locals() else "decision-sample"
+    routing_decision = AgentRoutingDecision(
+        decision_id=sample_decision_id,
+        use_case="algo_surveillance",
+        context={"symbol": "AAPL", "px_submitted": 178.4250, "order_size": 500},
+        candidates=["clean", "flag_for_review", "halt"],
+        selected="clean",
+        policy_id="algo_execution",
+        policy_version="2.3.1",
+        matched_rule_id="vwap_band",
+        evidence_refs=[print_at_decision.record_id],
+        rationale="px at submission within VWAP band at decision time",
+        decided_at=decision_time,
+    )
+
+    bundle = ExaminerBundle.build(
+        routing_decision, evidence_store=prints, policy_registry=registry,
+        metadata={"regulation": "SEC-17a-4/FINRA", "decision_id": sample_decision_id},
+    )
+    print(f"\nExaminerBundle assembled:")
+    print(f"  content_hash:    {bundle.content_hash}")
+    print(f"  policy version:  v{bundle.policy['version']}")
+    print(f"  evidence rows:   {len(bundle.evidence)}")
+
+    bundle.verify()
+    print(f"\nverify() on untouched bundle:    OK")
+    payload = bundle.to_json(indent=2)
+    ExaminerBundle.from_json(payload).verify()
+    print(f"verify() after JSON round-trip:  OK")
+    tampered = json.loads(payload)
+    tampered["decision"]["selected"] = "halt"
+    try:
+        ExaminerBundle.from_dict(tampered).verify()
+    except BundleIntegrityError as e:
+        print(f"verify() on tampered bundle:     REJECTED ({type(e).__name__})")
 
     all_decision_ids = [normal_stored_id] + spoofing_decision_ids
     print(f"\nSUCCESS: Algorithmic trading surveillance audit trail demonstration completed")

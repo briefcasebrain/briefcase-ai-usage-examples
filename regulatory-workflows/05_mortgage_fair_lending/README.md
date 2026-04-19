@@ -211,3 +211,15 @@ This example provides comprehensive documentation for fair lending examinations:
 **Related Workflows:**
 - [01. Credit Underwriting](../01_credit_underwriting/README.md) - ECOA/Reg B consumer credit compliance
 - [10. Collections & Debt Management](../10_collections_debt/README.md) - Post-origination fair treatment
+
+## Bitemporal Replay Demonstration
+
+The capstone section at the end of `example.py` (and in the walkthrough notebook) adds a replay layer on top of the existing tag-based audit trail:
+
+- **Bitemporal evidence store** — the domain's inputs (bureau file, appraisal, KYC snapshot, market-data print, etc.) are stored append-only with both `valid_time` and `transaction_time`.
+- **`append_correction()`** — a domain-authentic correction scenario (see the example) is appended with a later `transaction_time`. The original record is preserved.
+- **`AsOfView`** — clamps reads to the original decision day, reconstructing what the system actually saw without contacting upstream.
+- **`ExaminerBundle`** — emits a self-contained, content-addressed JSON artifact. `verify()` OK on untouched, REJECTED on any tamper.
+
+For the primitives in isolation, see [`patterns/`](../../patterns/). For the full walkthrough of these primitives composed into a cross-border payments narrative, see [`agentic-payments/`](../../agentic-payments/).
+

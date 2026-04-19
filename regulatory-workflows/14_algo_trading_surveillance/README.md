@@ -217,3 +217,15 @@ This example addresses complex high-frequency trading examination requirements:
 **Related Workflows:**
 - [11. Robo-Advisory & Reg BI](../11_robo_advisory_reg_bi/README.md) - SEC algorithmic decision compliance principles
 - [09. Fintech Release Monitoring](../09_fintech_release_monitoring/README.md) - Algorithm performance monitoring and drift detection
+
+## Bitemporal Replay Demonstration
+
+The capstone section at the end of `example.py` (and in the walkthrough notebook) adds a replay layer on top of the existing tag-based audit trail:
+
+- **Bitemporal evidence store** — the domain's inputs (bureau file, appraisal, KYC snapshot, market-data print, etc.) are stored append-only with both `valid_time` and `transaction_time`.
+- **`append_correction()`** — a domain-authentic correction scenario (see the example) is appended with a later `transaction_time`. The original record is preserved.
+- **`AsOfView`** — clamps reads to the original decision day, reconstructing what the system actually saw without contacting upstream.
+- **`ExaminerBundle`** — emits a self-contained, content-addressed JSON artifact. `verify()` OK on untouched, REJECTED on any tamper.
+
+For the primitives in isolation, see [`patterns/`](../../patterns/). For the full walkthrough of these primitives composed into a cross-border payments narrative, see [`agentic-payments/`](../../agentic-payments/).
+
