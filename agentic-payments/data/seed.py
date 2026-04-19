@@ -27,7 +27,7 @@ def at(days: int = 0, hours: int = 0) -> datetime:
 
 
 # ---------------------------------------------------------------------------
-# Market-data evidence — the Steve Cannon scenario
+# Market-data evidence
 # ---------------------------------------------------------------------------
 
 def ofac_clean_record() -> BitemporalRecord:

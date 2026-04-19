@@ -4,14 +4,12 @@ This walkthrough demonstrates the bitemporal evidence, versioned routing
 policy, and examiner bundle primitives working together for an agentic
 cross-border payment decision.
 
-The scenario combines two real architectural patterns:
+The scenario combines two architectural patterns:
 
-- **Bitemporal storage** for evidence (per the Steve Cannon notes on
-  quant-finance data architecture). Every fact carries `valid_time`
+- **Bitemporal storage** for evidence. Every fact carries `valid_time`
   (when it was true in the world) and `transaction_time` (when the
   system learned about it). Corrections are appended, never mutated.
-- **Versioned routing policy** for the agent's decision logic (per the
-  Bridge.xyz notes on stablecoin infrastructure). The agent's
+- **Versioned routing policy** for the agent's decision logic. The agent's
   "if this use case, then this stablecoin" rules are themselves stored
   bitemporally so examiners can reconstruct which version was active on
   any past date.
@@ -33,15 +31,15 @@ external services are required.
 
 Run the scripts in numeric order. Each builds on the previous.
 
-| Script | Concept | From which notes |
-| --- | --- | --- |
-| `01_bitemporal_basics.py` | `BitemporalRecord`, append-only store | Steve Cannon |
-| `02_correction_pattern.py` | Bloomberg-style correction: append, don't mutate | Steve Cannon |
-| `03_asof_replay.py` | `AsOfView` — the API-wrapping pattern | Steve Cannon |
-| `04_policy_versioning.py` | `PolicyRegistry` with bitemporal policy rules | Bridge.xyz |
-| `05_agent_routing.py` | `AgentRouter` tying evidence + policy into one decision | Bridge.xyz |
-| `06_backtest_lookahead.py` | Why bitemporal is not optional for backtests | Steve Cannon |
-| `07_examiner_bundle.py` | `ExaminerBundle` — the reproducible compliance artifact | Both |
+| Script | Concept |
+| --- | --- |
+| `01_bitemporal_basics.py` | `BitemporalRecord`, append-only store |
+| `02_correction_pattern.py` | Bloomberg-style correction: append, don't mutate |
+| `03_asof_replay.py` | `AsOfView` — the API-wrapping pattern |
+| `04_policy_versioning.py` | `PolicyRegistry` with bitemporal policy rules |
+| `05_agent_routing.py` | `AgentRouter` tying evidence + policy into one decision |
+| `06_backtest_lookahead.py` | Why bitemporal is not optional for backtests |
+| `07_examiner_bundle.py` | `ExaminerBundle` — the reproducible compliance artifact |
 
 Run all of them:
 

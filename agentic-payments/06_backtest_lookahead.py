@@ -1,7 +1,7 @@
 """
 06 — The look-ahead trap, and how AsOfView closes it.
 
-Steve Cannon's point: a naive backtest reads the current store and asks
+The look-ahead trap: a naive backtest reads the current store and asks
 "what does this system think about USDC/USD on day 17?" — but the store
 has already absorbed a correction that did not exist on day 17. The
 backtest sees the future. The Sharpe ratio lifts. The trader loses
