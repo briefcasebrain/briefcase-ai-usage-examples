@@ -210,7 +210,6 @@ This example addresses complex multi-state commercial finance examination requir
 - [Utah Commercial Finance Disclosure Act](https://le.utah.gov/xcode/Title70C/Chapter7/70C-7.html)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

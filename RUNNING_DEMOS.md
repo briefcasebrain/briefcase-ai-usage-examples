@@ -155,17 +155,23 @@ cd regulatory-workflows
 Run regulatory compliance examples:
 
 ```bash
-# Model Risk Management
-python 01_model_risk_management/example.py
+# Credit Underwriting (ECOA/Reg B)
+python 01_credit_underwriting/example.py
 
-# Examiner Response System
-python 02_examiner_responses/example.py
+# OFAC Sanctions Screening
+python 02_ofac_sanctions/example.py
 
-# Release Validation
-python 03_release_validation/example.py
+# Fraud Detection & Reg E
+python 03_fraud_reg_e/example.py
 
-# Audit Trail Generation
-python 04_audit_trails/example.py
+# Mortgage Fair Lending (HMDA)
+python 05_mortgage_fair_lending/example.py
+
+# AML Transaction Monitoring
+python 07_aml_transaction_monitoring/example.py
+
+# Algorithmic Trading Surveillance (FINRA)
+python 14_algo_trading_surveillance/example.py
 ```
 
 ### Expected Output for Regulatory

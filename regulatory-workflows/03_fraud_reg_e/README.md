@@ -202,7 +202,6 @@ This example prepares comprehensive responses for consumer compliance examinatio
 - [NACHA Operating Rules](https://www.nacha.org/rules)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

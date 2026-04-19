@@ -38,7 +38,7 @@ Rows = primitives. Columns = example suites in this repo that compose them. A `�
 | 02 `BitemporalRecord` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |   |   |
 | 03 `append_correction` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |   |   |
 | 04 `AsOfView` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |   |   |
-| 05 `PolicyRegistry` | ✓ | ✓ |   |   |   |   |   |   |
+| 05 `PolicyRegistry` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |   |   |
 | 06 `ExaminerBundle` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |   |   |
 | 07 `CostCalculator` |   |   |   |   |   |   |   | ✓ |
 | 08 `DriftCalculator` |   |   |   |   |   |   | ✓ | ✓ |

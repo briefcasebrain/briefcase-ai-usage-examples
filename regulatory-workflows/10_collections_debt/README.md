@@ -177,7 +177,6 @@ This example addresses examination requirements across multiple regulatory agenc
 - [State Debt Collection Laws Database](https://www.narca.org/state-laws)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

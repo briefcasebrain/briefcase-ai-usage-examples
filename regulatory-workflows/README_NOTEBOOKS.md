@@ -187,7 +187,6 @@ The notebooks demonstrate compliance with:
 For questions about the notebooks or Briefcase AI integration:
 - Review the technical documentation in each example directory
 - Check the shared backend implementation for common patterns
-- Refer to the SDK_API_DISCREPANCIES.md for implementation details
 
 ---
 

@@ -205,7 +205,6 @@ This example provides comprehensive documentation for AML compliance examination
 - [FinCEN Customer Due Diligence Rule](https://www.fincen.gov/sites/default/files/2016-05/CDD_Rule_FAQ_FINAL_508.pdf)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

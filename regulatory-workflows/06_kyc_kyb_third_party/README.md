@@ -204,7 +204,6 @@ This example addresses complex examination scenarios involving vendor relationsh
 - [FinCEN Customer Due Diligence Requirements](https://www.fincen.gov/resources/statutes-regulations/guidance/customer-due-diligence-requirements-financial-institutions)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

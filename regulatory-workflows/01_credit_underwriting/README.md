@@ -186,7 +186,6 @@ This example prepares responses for common examiner inquiries:
 - [OCC Interagency Fair Lending Examination Procedures](https://www.occ.gov/publications-and-resources/publications/comptrollers-handbook/files/fair-lending/index-fair-lending.html)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

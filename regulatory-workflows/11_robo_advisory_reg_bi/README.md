@@ -210,7 +210,6 @@ This example addresses complex examination requirements for robo-advisory servic
 - [SEC Investment Adviser Act Guidance](https://www.sec.gov/investment/adviser-info)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

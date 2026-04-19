@@ -204,7 +204,6 @@ This example provides comprehensive documentation for fair lending examinations:
 - [HUD Fair Housing Planning Guide](https://www.hud.gov/program_offices/fair_housing_equal_opp)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

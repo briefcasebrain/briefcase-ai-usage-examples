@@ -213,7 +213,6 @@ This example addresses common examiner inquiries across multiple regulatory agen
 - [FFIEC BSA/AML Examination Manual](https://www.ffiec.gov/bsa_aml_infobase/pages_manual/manual_online.htm)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

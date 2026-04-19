@@ -203,7 +203,6 @@ This example addresses the unique examination requirements for real-time payment
 - [FFIEC Payment Systems Guidance](https://www.ffiec.gov/press/PDF/FFIEC%20Retail%20Payment%20Systems%20Booklet.pdf)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

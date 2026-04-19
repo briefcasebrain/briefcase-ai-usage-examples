@@ -204,7 +204,6 @@ This example addresses the complex examination requirements for sponsor bank arr
 - [Federal Reserve Commercial Bank Examination Manual](https://www.federalreserve.gov/publications/supervision_cbem.htm)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

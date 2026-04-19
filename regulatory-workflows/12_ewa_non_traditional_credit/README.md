@@ -210,7 +210,6 @@ This example addresses complex examination requirements for emerging financial p
 - [CFPB Consumer Financial Services Examination Manual](https://www.consumerfinance.gov/compliance/supervision-and-examination/manual-procedures/)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 

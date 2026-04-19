@@ -210,7 +210,6 @@ This example addresses complex high-frequency trading examination requirements:
 - [Dodd-Frank Act Section 747: Anti-Manipulation and Anti-Disruption Provisions](https://www.cftc.gov/LawRegulation/DoddFrankAct/Dodd-FrankFinalRules/ssLINK/dfact747)
 
 **Technical Documentation:**
-- [Shared Backend Utilities](../shared/README.md)
 - [Briefcase AI SDK Documentation](https://briefcaseai.io)
 - [Complete Workflow Overview](../README.md)
 
