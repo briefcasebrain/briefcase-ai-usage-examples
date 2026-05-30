@@ -11,7 +11,8 @@ from pathlib import Path
 
 import time
 
-from briefcase._native import ReplayEngine, DriftCalculator
+from briefcase.replay import ReplayEngine
+from briefcase.drift import DriftCalculator
 from briefcase.routing import BaseRouter, RoutingDecision
 from briefcase.events.emitter import emit_low_confidence, emit_drift_detected
 

@@ -8,7 +8,9 @@ import json
 import asyncio
 from pathlib import Path
 
-from briefcase._native import Scorecard, ExperimentMetadata, CostCalculator
+from briefcase.cost import CostCalculator
+# Scorecard and ExperimentMetadata are native-only types (no public re-export)
+from briefcase._native import Scorecard, ExperimentMetadata
 from briefcase.guardrails import GuardrailPipeline, PipelineMode, EvalRequest
 
 from src.mock_llm import MockLLMProvider

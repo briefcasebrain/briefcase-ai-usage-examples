@@ -53,7 +53,7 @@ async def run_demo(args):
     # Header
     print()
     print("+" + "=" * 70 + "+")
-    print("|  BRIEFCASE AI v3.0.0 -- Criminal Evidence Summarization POC" + " " * 9 + "|")
+    print("|  BRIEFCASE AI v3.2.0 -- Criminal Evidence Summarization POC" + " " * 9 + "|")
     print(f"|  Mode: {mode:<25} |  Reports: 5  |  Models: 2    |")
     print("+" + "=" * 70 + "+")
     print()

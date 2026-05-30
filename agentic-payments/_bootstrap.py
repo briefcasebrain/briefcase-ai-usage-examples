@@ -32,7 +32,7 @@ def _install_native_stub() -> None:
         pass
 
     stub = MagicMock()
-    stub.__version__ = "3.0.0-walkthrough-stub"
+    stub.__version__ = "3.2.0-walkthrough-stub"
     stub.DecisionSnapshot = MagicMock
     stub.ExecutionContext = MagicMock
     stub.HardwareMetadata = MagicMock

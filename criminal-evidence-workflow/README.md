@@ -53,8 +53,6 @@ pip install -e .
 This installs:
 - `briefcase-ai` — the SDK being demonstrated
 - `rouge-score` — ROUGE-L metric for the factual accuracy guardrail
-- `spacy` — NLP toolkit (entity extraction support)
-- `chromadb` — vector store (embedding support)
 
 No `openai`, `anthropic`, or `langchain` packages are installed by default. Those are optional for live mode.
 
@@ -176,21 +174,13 @@ The Rust-powered `Sanitizer` redacts all of them:
 
 **External data tracking**: `ExternalDataTracker` monitors the evidence source with `SnapshotPolicy(frequency=ON_CHANGE)`. After tracking the original file and detecting drift against the amended version: `has_changed=True`, `drift_score=1.0`, `size_delta=835 bytes`.
 
-### Section 7: SOC2 Compliance
-
-`SOC2ReportGenerator` evaluates compliance controls over the decision history:
-- 5 controls evaluated (CC6.1 Access Controls, CC7.2 Monitoring, etc.)
-- 3 passed, 1 failed
-- Overall score: 60.0%
-- Full markdown report generated for audit handoff
-
 ---
 
 ## Demo Output
 
 ```
 +======================================================================+
-|  BRIEFCASE AI v3.0.0 -- Criminal Evidence Summarization Workflow          |
+|  BRIEFCASE AI v3.2.0 -- Criminal Evidence Summarization POC         |
 |  Mode: Mocked (fixture-backed)   |  Reports: 5  |  Models: 2    |
 +======================================================================+
 
@@ -229,9 +219,6 @@ The Rust-powered `Sanitizer` redacts all of them:
    DriftCalculator: drift_score=0.521
    ExternalDataTracker: source changed, size_delta=835 bytes
 
->> Section 7: Compliance Report (SOC2)
-   5 controls evaluated | 3 passed | 1 failed | Score: 60.0%
-
   Events emitted: 3 (drift.detected=2, decision.low_confidence=1)
   No API keys used. Run with --live for real LLM calls.
 ```
@@ -247,7 +234,7 @@ Four Jupyter notebooks walk through each capability interactively with markdown 
 | **01 — Pipeline & Decision Tracking** | Instrumentation | `@capture` decorator, `briefcase.setup()` config, `detect_hardware()` metadata, `DecisionSnapshot` inspection, GPT-4o vs Claude Sonnet comparison, batch processing, content-hash versioning |
 | **02 — Evaluation & Guardrails** | Structured validation | Run each guardrail individually on good vs bad reports, see `Effect.ALLOW`/`DENY` decisions with metadata, compose into `Scorecard`, full model comparison table, per-report calibration analysis, `CostCalculator` token tracking |
 | **03 — Error Reproduction & Triage** | Failure handling | Stochastic runs with drift detection, `emit_drift_detected` events, `ReplayEngine` validation, `ConfidenceRouter` routing with `emit_low_confidence` events, `Sanitizer` PII redaction, event bus inspection |
-| **04 — Data Lineage & Compliance** | Auditability | `PromptValidationEngine` reference checking, version-linked decisions, `DriftCalculator` with event emission, `MockLakeFSClient` integration pattern, SOC2 compliance reporting |
+| **04 — Data Lineage & Compliance** | Auditability | `PromptValidationEngine` reference checking, version-linked decisions, `DriftCalculator` with event emission, `MockLakeFSClient` → `VersionedClient` production pattern |
 
 ### Running Notebooks
 
@@ -323,7 +310,7 @@ criminal-evidence-workflow/
 │   ├── evaluation.py                  # GuardrailPipeline + Scorecard + CostCalculator
 │   ├── triage.py                      # ReplayEngine + ConfidenceRouter + event emission
 │   ├── sanitization.py                # Sanitizer PII redaction
-│   ├── lineage.py                     # DataRef versioning + ExternalDataTracker + events + SOC2
+│   ├── lineage.py                     # DataRef versioning + ExternalDataTracker + events
 │   └── guardrails/
 │       ├── __init__.py
 │       ├── factual_accuracy.py        # ROUGE-L + keyword entity overlap
@@ -434,7 +421,6 @@ Every SDK module listed below is instantiated and called with real arguments in 
 | `briefcase.guardrails` | `GuardrailPipeline`, `PipelineMode.ALL` | `evaluation.py` |
 | `briefcase.routing` | `BaseRouter`, `RoutingDecision` — extended by local `ConfidenceRouter` | `triage.py` |
 | `briefcase.external_data` | `ExternalDataTracker`, `SnapshotPolicy`, `SnapshotFrequency.ON_CHANGE` | `lineage.py` |
-| `briefcase.compliance.reports.soc2` | `SOC2ReportGenerator`, `.evaluate()` → `ComplianceReport`, `.to_markdown()` | `lineage.py` |
 
 ---
 
@@ -492,11 +478,11 @@ This workflow runs within the constraints of grant-funded criminal justice infra
 
 | Constraint | How It's Satisfied |
 |-----------|-------------------|
-| **Open source** | `briefcase-ai` is GPL-3.0, published on PyPI |
+| **Open source** | `briefcase-ai` is Apache-2.0, published on PyPI |
 | **Azure Gov Cloud** | `SqliteBackend` is fully offline — no external service calls, no telemetry endpoints |
 | **Air-gappable** | Zero network dependencies in default mode; `pip install` is the only step that touches the internet |
 | **No fine-tuned models** | Off-the-shelf GPT-4o and Claude Sonnet only |
-| **CIS compliant** | `SOC2ReportGenerator` produces automated control evaluations |
+| **Audit-ready** | Content-hash–versioned `DecisionSnapshot` lineage plus `DriftCalculator` event emission produce a reconstructable audit trail |
 | **Privacy-first** | All demo data is synthetic; `Sanitizer` handles real PII at the SDK level |
 | **Python 3.9+** | Compatible with older Azure Gov Cloud runtimes |
 | **No Docker required** | Single `pip install`, runs directly on the host |

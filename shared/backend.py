@@ -121,12 +121,14 @@ def compute_cost(vendor: str, model_name: str, input_tokens: int, output_tokens:
     return input_cost_usd, output_cost_usd
 
 
-def print_audit_summary(decision_id: str, label: str) -> None:
+def print_audit_summary(decision_id: str, label: str = "") -> None:
     """
     Prints a standardized audit log summary for any decision ID.
-    Used across all examples for consistent output formatting.
+    Used across all examples for consistent output formatting. ``label`` is
+    optional so callers that only have a decision id can still use it.
     """
-    print(f"[AUDIT] {label} | decision_id={decision_id} | stored OK")
+    prefix = f"{label} | " if label else ""
+    print(f"[AUDIT] {prefix}decision_id={decision_id} | stored OK")
 
 
 def format_demo_answer(capability: str, evidence: str) -> None:

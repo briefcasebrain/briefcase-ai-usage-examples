@@ -1,8 +1,8 @@
 # Briefcase AI Usage Examples
 
-[![License: BSL 1.1](https://img.shields.io/badge/License-BSL%201.1-blue.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![briefcase-ai v3.0.0](https://img.shields.io/badge/briefcase--ai-v3.0.0-green.svg)](https://pypi.org/project/briefcase-ai/)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![briefcase-ai v3.2.0](https://img.shields.io/badge/briefcase--ai-v3.2.0-green.svg)](https://pypi.org/project/briefcase-ai/)
 
 Production examples for the [Briefcase AI SDK](https://github.com/briefcasebrain/briefcase-ai-sdk) across financial services, e-commerce, and criminal justice. The repo is organized in two tiers — **primitives** (domain-neutral, one per file) and **compositions** (SDK primitives assembled into realistic stories).
 
@@ -43,7 +43,7 @@ Primitives assembled into realistic, industry-specific narratives. The **Primiti
 | [Agentic Payments](agentic-payments/) | `python agentic-payments/01_bitemporal_basics.py` | 02+03+04+05+06 | 7-script walkthrough: cross-border payment routing with bitemporal evidence, versioned policy, examiner bundles |
 | [Regulatory Workflows](regulatory-workflows/) | `cd regulatory-workflows && python 01_credit_underwriting/example.py` | 01 everywhere; 02+03+04+06 in the five replay-enabled examples | 14 financial compliance workflows (ECOA, BSA, CFPB, SEC, OCC, FINRA). Five include a replay capstone: `01_credit_underwriting`, `02_ofac_sanctions`, `05_mortgage_fair_lending`, `07_aml_transaction_monitoring`, `14_algo_trading_surveillance` |
 | [Vantara Commerce](vantara-briefcase-demo/) | `cd vantara-briefcase-demo && python 01_agent_discovery/example.py` | 01+07+08 | Agent discovery, cost attribution, drift detection, governance reporting |
-| [Criminal Evidence](criminal-evidence-workflow/) | `cd criminal-evidence-workflow && python experiments/run_experiment.py --fast` | 01+09+10+11 | LLM evidence summarization with guardrails, replay, PII sanitization, SOC2 |
+| [Criminal Evidence](criminal-evidence-workflow/) | `cd criminal-evidence-workflow && python experiments/run_experiment.py --fast` | 01+09+10+11 | LLM evidence summarization with guardrails, replay, PII sanitization, and data lineage |
 
 Each suite includes Python scripts, Jupyter notebooks, and detailed documentation.
 
@@ -69,6 +69,8 @@ decision.with_model_parameters(params)
 backend = SqliteBackend.in_memory()
 decision_id = backend.save_decision(decision)
 ```
+
+Prefer the decorator? `@capture` records a function's inputs/outputs/timing automatically — call `briefcase.observe("console")` (or `briefcase.setup(exporter=...)`) once so the records are sent somewhere. See [`patterns/01_decision_capture.py`](patterns/01_decision_capture.py).
 
 See also: `@capture` decorator, `CostCalculator`, `DriftCalculator`, `Sanitizer`, `GuardrailPipeline`, `ReplayEngine`, `BitemporalRecord`, `PolicyRegistry`, `AgentRouter`, `ExaminerBundle`. Full SDK docs at [briefcaseai.io](https://briefcaseai.io).
 

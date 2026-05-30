@@ -13,6 +13,7 @@ import asyncio
 import platform
 
 import briefcase
+# DataRef is a native-only type (no public re-export)
 from briefcase._native import DataRef
 from briefcase.correlation import briefcase_workflow
 from briefcase.decorators import capture

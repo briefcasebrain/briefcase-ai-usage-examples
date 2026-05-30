@@ -1,6 +1,14 @@
 # Running Briefcase AI Demo Suites
 
-This repository contains two comprehensive demo suites showcasing the Briefcase AI SDK for enterprise AI governance and decision tracking.
+This repository showcases the open-source [`briefcase-ai`](https://github.com/briefcasebrain/briefcase-ai-sdk) SDK (v3.2.0) for AI governance and decision tracking. It is organized as a `patterns/` library of single-primitive demos plus four composition suites that assemble those primitives into realistic stories:
+
+- **`patterns/`** — domain-neutral, one primitive per file (decision capture, bitemporal evidence, replay, drift, cost, PII sanitization, guardrails, …).
+- **`agentic-payments/`** — cross-border payment routing with bitemporal evidence, versioned policy, and examiner bundles.
+- **`regulatory-workflows/`** — 14 financial-compliance walkthroughs (ECOA, BSA, CFPB, SEC, OCC, FINRA).
+- **`vantara-briefcase-demo/`** — e-commerce operational governance: agent discovery, cost attribution, drift, governance reporting.
+- **`criminal-evidence-workflow/`** — LLM evidence summarization with guardrails, replay, PII sanitization, and data lineage.
+
+This guide focuses on the **Vantara Commerce** and **Regulatory Workflows** suites; see each directory's `README.md` (and the top-level [`README.md`](README.md)) for the others.
 
 ## Quick Setup (Recommended)
 
@@ -11,7 +19,7 @@ Use the automated setup script to install all dependencies and configure a virtu
 ```
 
 This script will:
-- Check Python 3.8+ installation
+- Check Python 3.9+ installation
 - Create a virtual environment (`briefcase-ai-demos-env`)
 - Install briefcase-ai SDK and all dependencies
 - Configure Jupyter kernel
@@ -244,11 +252,11 @@ pip install ipykernel
 python -m ipykernel install --user
 ```
 
-### Mock Implementation Warning
+### SDK Requirement
 
-The demos are designed to **fail** if the real SDK is not available. There are no mock fallbacks - this ensures you're seeing authentic SDK instrumentation.
+The Vantara and Regulatory demos require the real `briefcase-ai` SDK — they call `sys.exit(1)` with install instructions if it is missing, so you always see authentic SDK instrumentation rather than a stub.
 
-If you see references to "mock implementation", the real SDK is not properly installed.
+> Exception: the `agentic-payments/` walkthrough scripts use only pure-Python primitives (bitemporal, routing, compliance). To let them run from a source checkout without the compiled wheel, `agentic-payments/_bootstrap.py` installs a minimal stub for `briefcase._native` at import time. Installing `pip install briefcase-ai` makes the stub a no-op. Decision *capture* and storage still require the real SDK.
 
 ## Understanding the Output
 

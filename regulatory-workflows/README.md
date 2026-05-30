@@ -121,16 +121,16 @@ Time-sensitive scenarios include:
 - ✅ **07_aml_transaction_monitoring** - Complete with rule versioning
 - ✅ **14_algo_trading_surveillance** - Complete with spoofing detection
 
-### Stub Implementations
-- 🚧 **06_kyc_kyb_third_party** - Functional stub, ready for expansion
-- 🚧 **08_neobank_baas_sponsor** - Functional stub, ready for expansion
-- 🚧 **09_fintech_release_monitoring** - Functional stub, ready for expansion
-- 🚧 **10_collections_debt** - Functional stub, ready for expansion
-- 🚧 **11_robo_advisory_reg_bi** - Functional stub, ready for expansion
-- 🚧 **12_ewa_non_traditional_credit** - Functional stub, ready for expansion
-- 🚧 **13_mca_cash_flow_lending** - Functional stub, ready for expansion
+### Decision-Capture Examples
+- ✅ **06_kyc_kyb_third_party** - Decision capture + audit trail
+- ✅ **08_neobank_baas_sponsor** - Decision capture + audit trail
+- ✅ **09_fintech_release_monitoring** - Decision capture + audit trail
+- ✅ **10_collections_debt** - Decision capture + audit trail
+- ✅ **11_robo_advisory_reg_bi** - Decision capture + audit trail
+- ✅ **12_ewa_non_traditional_credit** - Decision capture + audit trail
+- ✅ **13_mca_cash_flow_lending** - Decision capture + audit trail
 
-All stub implementations are syntactically correct, will execute without errors, and demonstrate the core Briefcase AI integration patterns. They provide a solid foundation for full implementation.
+All 14 examples run end-to-end. These seven focus on the core decision-capture and audit-trail patterns; the examples above layer on richer domain-specific logic, and `01`, `02`, `05`, `07`, `14` additionally include a bitemporal **replay capstone** (`briefcase.bitemporal` + `briefcase.routing` + `ExaminerBundle`).
 
 ## Architecture
 

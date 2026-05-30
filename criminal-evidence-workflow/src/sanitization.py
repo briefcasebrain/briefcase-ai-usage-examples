@@ -7,7 +7,7 @@ from police report text and decision payloads.
 import re
 from pathlib import Path
 
-from briefcase._native import Sanitizer
+from briefcase.sanitize import Sanitizer
 
 
 sanitizer = Sanitizer()

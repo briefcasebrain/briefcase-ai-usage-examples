@@ -5,7 +5,7 @@ All modules import from here instead of creating their own instances.
 """
 
 import briefcase
-from briefcase._native import SqliteBackend
+from briefcase.storage import SqliteBackend
 from briefcase.config import setup
 from briefcase.events.types import BriefcaseEvent
 

@@ -42,9 +42,6 @@ class MaxNotionalEnv(BaseGuardrailEnv):
             return EvalResult(effect=Effect.DENY, guardrail_name=self.name, reason=f"notional {notional} exceeds cap {self._cap}")
         return EvalResult(effect=Effect.ALLOW, guardrail_name=self.name, reason="under cap")
 
-    def explain(self, request: EvalRequest, result: EvalResult):
-        return result
-
     def reset(self) -> None:
         pass
 
@@ -72,9 +69,6 @@ class JurisdictionAllowlistEnv(BaseGuardrailEnv):
         if j not in self._allowed:
             return EvalResult(effect=Effect.DENY, guardrail_name=self.name, reason=f"jurisdiction {j} not in {sorted(self._allowed)}")
         return EvalResult(effect=Effect.ALLOW, guardrail_name=self.name, reason=f"{j} allowed")
-
-    def explain(self, request: EvalRequest, result: EvalResult):
-        return result
 
     def reset(self) -> None:
         pass

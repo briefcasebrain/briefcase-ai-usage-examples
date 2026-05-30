@@ -37,19 +37,19 @@ print_header() {
 print_header "Step 1: Checking Python installation..."
 if ! command -v python3 &> /dev/null; then
     print_error "Python 3 is required but not installed."
-    echo "Please install Python 3.8 or higher and try again."
+    echo "Please install Python 3.9 or higher and try again."
     exit 1
 fi
 
 PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
 print_status "Found Python $PYTHON_VERSION"
 
-# Check Python version (require 3.8+, but warn about 3.14+)
+# Check Python version (require 3.9+, but warn about 3.14+)
 PYTHON_MAJOR=$(echo $PYTHON_VERSION | cut -d'.' -f1)
 PYTHON_MINOR=$(echo $PYTHON_VERSION | cut -d'.' -f2)
 
-if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 8 ]); then
-    print_error "Python 3.8 or higher is required. Found: $PYTHON_VERSION"
+if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 9 ]); then
+    print_error "Python 3.9 or higher is required. Found: $PYTHON_VERSION"
     exit 1
 fi
 
@@ -102,8 +102,8 @@ else
     print_warning "Failed to install briefcase-ai from PyPI"
     SDK_INSTALLED=false
 
-    # Check if we can build from source
-    BRIEFCASE_AI_SOURCE="../briefcase-ai-spec/crates/python"
+    # Check if we can build from source (local checkout of the SDK repo)
+    BRIEFCASE_AI_SOURCE="../briefcase-ai-sdk"
     if [ -d "$BRIEFCASE_AI_SOURCE" ]; then
         print_status "Found briefcase-ai source at $BRIEFCASE_AI_SOURCE"
         print_status "Attempting to build from source..."
@@ -129,11 +129,12 @@ else
     if [ "$SDK_INSTALLED" = false ]; then
         print_warning "briefcase-ai SDK could not be installed"
         echo
-        echo "The demos require the briefcase-ai SDK to run."
+        echo "The demos require the open-source briefcase-ai SDK (Apache-2.0) to run."
+        echo "It is published on PyPI; a failed install is usually a build/toolchain issue."
         echo "Options to resolve this:"
-        echo "1. Contact support@briefcaseai.org for SDK access"
-        echo "2. Wait for briefcase-ai to be available via pip"
-        echo "3. Set up the briefcase-ai development environment"
+        echo "1. Use Python 3.11 or 3.12 (best prebuilt-wheel coverage), then: pip install briefcase-ai"
+        echo "2. Install the Rust toolchain (https://rustup.rs) so the wheel can compile from source"
+        echo "3. Build from a local SDK checkout at ../briefcase-ai-sdk (maturin develop)"
         echo
         echo "SETUP WILL CONTINUE - but demos may show import errors until SDK is available."
         echo
@@ -226,7 +227,7 @@ if [ "$SDK_INSTALLED" = true ]; then
     python3 -c "
 import sys
 import os
-sys.path.append('shared')
+sys.path.append('../shared')
 import backend
 print('SUCCESS: Backend module loaded with real SDK')
 print('Real briefcase module available')
@@ -235,7 +236,7 @@ else
     python3 -c "
 import sys
 import os
-sys.path.append('shared')
+sys.path.append('../shared')
 print('Demo directory structure verified')
 print('Shared modules accessible')
 " && DEMO_TEST_PASSED=true || DEMO_TEST_PASSED=false
@@ -285,7 +286,7 @@ if [ "$SDK_INSTALLED" = true ]; then
 else
     echo "2. Install briefcase-ai SDK:"
     echo "   pip install briefcase-ai  # when available"
-    echo "   # OR contact support@briefcaseai.org"
+    echo "   # OR build from a local SDK checkout (see ../briefcase-ai-sdk)"
     echo
     echo "3. Then run the demos:"
     echo "   cd vantara-briefcase-demo"

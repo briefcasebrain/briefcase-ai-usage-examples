@@ -2,11 +2,12 @@
 
 ## Supported Versions
 
-We actively support the following versions of the Briefcase AI Telemetry SDK:
+These examples track the `briefcase-ai` SDK. We actively support examples running against the following SDK versions:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
+| briefcase-ai version | Supported          |
+| -------------------- | ------------------ |
+| 3.2.x                | :white_check_mark: |
+| 3.1.x                | :white_check_mark: |
 
 ## Reporting Security Vulnerabilities
 

@@ -483,10 +483,7 @@ def main():
     # Store all decisions in backend
     stored_decision_ids = []
     for decision in drift_decisions:
-        if hasattr(backend_instance, 'save_decision'):
-            decision_id = backend_instance.save_decision(decision)
-        else:
-            decision_id = backend_instance.store_decision(decision)
+        decision_id = backend_instance.save_decision(decision)
         stored_decision_ids.append(decision_id)
         team = decision.inputs[0].value
         model_version = decision.inputs[4].value

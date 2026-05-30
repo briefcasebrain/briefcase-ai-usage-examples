@@ -10,7 +10,7 @@ See also: patterns/01_decision_capture.py (decisions are what you attribute cost
 """
 from __future__ import annotations
 
-from briefcase._native import CostCalculator
+from briefcase.cost import CostCalculator
 
 calc = CostCalculator()
 

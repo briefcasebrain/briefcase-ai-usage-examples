@@ -21,7 +21,7 @@ why a specific decision was made.
 ## Prerequisites
 
 ```bash
-pip install "briefcase-ai[bitemporal,compliance,routing,external]>=3.0.0"
+pip install "briefcase-ai[bitemporal,compliance,routing,external]>=3.2.0"
 ```
 
 The walkthrough uses only synthetic data and in-memory stores. No

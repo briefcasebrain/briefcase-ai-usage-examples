@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 
-from briefcase._native import Sanitizer
+from briefcase.sanitize import Sanitizer
 
 sanitizer = Sanitizer()
 

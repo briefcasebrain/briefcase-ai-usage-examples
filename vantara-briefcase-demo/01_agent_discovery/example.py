@@ -148,10 +148,7 @@ def simulate_agent_discovery() -> List[DecisionSnapshot]:
                     }
                 )
 
-                if hasattr(backend_instance, 'save_decision'):
-                    decision_id = backend_instance.save_decision(decision)
-                else:
-                    decision_id = backend_instance.store_decision(decision)
+                decision_id = backend_instance.save_decision(decision)
                 result = {"decision_id": decision_id}
 
             # For successful AI function calls, we capture the fact that they executed
@@ -184,10 +181,7 @@ def simulate_agent_discovery() -> List[DecisionSnapshot]:
                 vendor=agent_config["vendor"],
                 model=agent_config["model"]
             )
-            if hasattr(backend_instance, 'save_decision'):
-                decision_id = backend_instance.save_decision(decision)
-            else:
-                decision_id = backend_instance.store_decision(decision)
+            decision_id = backend_instance.save_decision(decision)
             discovered_decisions.append(decision)
 
     return discovered_decisions

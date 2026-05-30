@@ -230,7 +230,7 @@ Every AI decision automatically creates a DecisionSnapshot containing:
 
 ### Prerequisites
 - Python 3.9+
-- Briefcase AI SDK (contact support@briefcaseai.org for access)
+- Briefcase AI SDK — `pip install briefcase-ai` (open source, Apache-2.0)
 
 ### Quick Start
 ```bash

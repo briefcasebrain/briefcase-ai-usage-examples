@@ -397,10 +397,7 @@ def main():
     # Store all decisions in backend
     stored_decision_ids = []
     for decision in governance_decisions:
-        if hasattr(backend_instance, 'save_decision'):
-            decision_id = backend_instance.save_decision(decision)
-        else:
-            decision_id = backend_instance.store_decision(decision)
+        decision_id = backend_instance.save_decision(decision)
         stored_decision_ids.append(decision_id)
         team = decision.inputs[0].value
         agent = decision.inputs[1].value

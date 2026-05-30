@@ -9,7 +9,7 @@ and generates compliance reports.
 import hashlib
 import asyncio
 from pathlib import Path
-from briefcase._native import DriftCalculator
+from briefcase.drift import DriftCalculator
 from briefcase.external_data import ExternalDataTracker, SnapshotPolicy, SnapshotFrequency
 from briefcase.events.emitter import emit_drift_detected
 

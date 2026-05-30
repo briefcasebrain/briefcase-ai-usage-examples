@@ -11,7 +11,7 @@ See also: patterns/01_decision_capture.py (decisions are the inputs to drift)
 """
 from __future__ import annotations
 
-from briefcase._native import DriftCalculator
+from briefcase.drift import DriftCalculator
 
 
 def main() -> None:

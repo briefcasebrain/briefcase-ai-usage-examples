@@ -221,10 +221,7 @@ def simulate_cost_attribution_decisions() -> List[DecisionSnapshot]:
                     }
                 )
 
-                if hasattr(backend_instance, 'save_decision'):
-                    decision_id = backend_instance.save_decision(decision)
-                else:
-                    decision_id = backend_instance.store_decision(decision)
+                decision_id = backend_instance.save_decision(decision)
                 result = {"decision_id": decision_id}
 
             # Track the decision that was created
@@ -417,10 +414,7 @@ def main():
     # Store decisions and track for audit
     stored_decision_ids = []
     for decision in cost_decisions:
-        if hasattr(backend_instance, 'save_decision'):
-            decision_id = backend_instance.save_decision(decision)
-        else:
-            decision_id = backend_instance.store_decision(decision)
+        decision_id = backend_instance.save_decision(decision)
         stored_decision_ids.append(decision_id)
 
         # Extract team for audit summary

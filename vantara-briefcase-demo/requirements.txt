@@ -22,4 +22,4 @@ pytest>=7.0.0
 black>=22.0.0
 
 # Note: The demo requires the real briefcase-ai SDK to demonstrate actual instrumentation
-# Contact support@briefcaseai.org for Briefcase AI SDK access and licensing
+# Briefcase AI SDK is open source (Apache-2.0): pip install briefcase-ai
