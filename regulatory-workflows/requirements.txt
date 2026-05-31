@@ -4,7 +4,7 @@
 # the bitemporal replay capstone in 02_ofac_sanctions/ (and, rolling out next,
 # 01_credit_underwriting, 05_mortgage_fair_lending, 07_aml_transaction_monitoring,
 # 14_algo_trading_surveillance). See agentic-payments/ for the reference walkthrough.
-briefcase-ai[bitemporal,compliance,routing]>=3.2.0
+briefcase-ai[bitemporal,compliance,routing]>=3.2.1
 
 # Optional: lakeFS integration support (uncomment if using lake-based versioning)
 # briefcase-ai[lakefs]>=0.1.0

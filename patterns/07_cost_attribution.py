@@ -43,6 +43,17 @@ def main() -> None:
     monthly = per_call.total_cost * per_day * 30
     print(f"\nProjection for 50k gpt-4o-mini calls/day: ${monthly:,.2f}/month")
 
+    # === Section: Pricing tiers (rate cards) ===
+    # estimate_cost takes a keyword-only rate_card to re-price under a
+    # platform x tier x modifier scheme; the batch tier is half price. The
+    # CostEstimate.cache_cost field itemizes prompt-cache usage (0 unless cache
+    # tokens are supplied).
+    std = calc.estimate_cost("gpt-4o", 1200, 350)
+    batch = calc.estimate_cost("gpt-4o", 1200, 350, rate_card="batch")
+    print(f"\ngpt-4o standard ${std.total_cost:.6f} vs batch ${batch.total_cost:.6f} "
+          f"({batch.total_cost / std.total_cost:.2f}x); cache portion ${std.cache_cost:.6f}")
+    print("See patterns 12-14 for rate cards, prompt-cache cost, and multi-cloud pricing.")
+
 
 if __name__ == "__main__":
     main()

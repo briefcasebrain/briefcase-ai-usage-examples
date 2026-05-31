@@ -180,7 +180,7 @@ The Rust-powered `Sanitizer` redacts all of them:
 
 ```
 +======================================================================+
-|  BRIEFCASE AI v3.2.0 -- Criminal Evidence Summarization POC         |
+|  BRIEFCASE AI v3.2.1 -- Criminal Evidence Summarization POC         |
 |  Mode: Mocked (fixture-backed)   |  Reports: 5  |  Models: 2    |
 +======================================================================+
 

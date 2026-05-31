@@ -1,7 +1,7 @@
 # Pattern library — domain-neutral single-primitive demonstrations.
 # Same SDK extras as agentic-payments/, extended for the decision-capture,
 # cost/drift, and guardrail primitives used in patterns 01 and 07–11.
-briefcase-ai[bitemporal,compliance,routing,external,guardrails,drift,sanitize,replay]>=3.2.0
+briefcase-ai[bitemporal,compliance,routing,external,guardrails,drift,sanitize,replay]>=3.2.1
 
 # Notebook execution
 jupyter>=1.0.0

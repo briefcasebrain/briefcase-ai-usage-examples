@@ -65,7 +65,11 @@ TEAMS = [
 
 CUSTOMER_SEGMENTS = ["high_ltv", "first_time_visitor", "returning_lapsed", "price_sensitive", "not_applicable"]
 
-# Pricing table for cost attribution
+# Offline pricing fallback for cost attribution.
+#
+# The SDK's CostCalculator is the source of truth for pricing (see compute_cost
+# below). This table is only consulted for models the SDK does not price — e.g.
+# Cohere and the legacy Gemini 1.5 family are not in the SDK's built-in table.
 VENDOR_PRICING = {
     # (input_price_per_1M_tokens, output_price_per_1M_tokens)
     "openai":        {"gpt-4o": (2.50, 10.00), "gpt-4o-mini": (0.15, 0.60)},
@@ -73,6 +77,22 @@ VENDOR_PRICING = {
     "cohere":        {"command-r-plus": (0.50, 1.50), "command-r": (0.15, 0.60)},
     "google-vertex": {"gemini-1.5-pro": (1.25, 5.00), "gemini-1.5-flash": (0.075, 0.30)},
 }
+
+# Single shared CostCalculator instance — the source of truth for pricing.
+# Falls back to None if the cost extra is unavailable (handled in compute_cost).
+_COST_CALCULATOR = CostCalculator() if CostCalculator is not None else None
+
+
+def available_rate_cards() -> List[str]:
+    """
+    Returns the SDK's representative rate-card strings (platform x tier x modifier),
+    e.g. "batch", "bedrock:standard,regional", "first_party:fast". Demos call this to
+    surface the pricing tiers they can pass to ``compute_cost(..., rate_card=...)``.
+    Empty list if the SDK cost module is unavailable.
+    """
+    if _COST_CALCULATOR is None:
+        return []
+    return _COST_CALCULATOR.get_available_rate_cards()
 
 
 def get_backend():
@@ -91,20 +111,49 @@ def get_backend():
     return SqliteBackend.in_memory()
 
 
-def compute_cost(vendor: str, model_name: str, input_tokens: int, output_tokens: int) -> Tuple[float, float]:
+def compute_cost(
+    vendor: str,
+    model_name: str,
+    input_tokens: int,
+    output_tokens: int,
+    *,
+    rate_card: Optional[str] = None,
+) -> Tuple[float, float]:
     """
-    Computes cost breakdown for a decision based on token usage and vendor pricing.
-    Used by Vantara Commerce demos for cost attribution.
+    Computes the cost breakdown for a decision from token usage.
+
+    Pricing comes from the SDK's ``CostCalculator`` (the single source of truth),
+    which includes the latest provider pricing and supports rate cards. The local
+    ``VENDOR_PRICING`` table is only used as an offline fallback for models the SDK
+    does not price (e.g. Cohere, legacy Gemini 1.5).
 
     Args:
-        vendor: Vendor name (e.g., "openai", "anthropic")
+        vendor: Vendor name (e.g., "openai", "anthropic"). Used for fallback lookup.
         model_name: Model name (e.g., "gpt-4o", "claude-3-5-sonnet")
         input_tokens: Number of input tokens consumed
         output_tokens: Number of output tokens generated
+        rate_card: Optional pricing scheme ("batch", "bedrock:standard,regional", ...).
+            See ``available_rate_cards()``. ``None`` uses standard first-party pricing.
 
     Returns:
         Tuple of (input_cost_usd, output_cost_usd)
     """
+    # Source of truth: the SDK pricing table + rate-card engine.
+    if _COST_CALCULATOR is not None:
+        try:
+            est = _COST_CALCULATOR.estimate_cost(
+                model_name, input_tokens, output_tokens, rate_card=rate_card
+            )
+            return est.input_cost, est.output_cost
+        except ValueError as e:
+            # Only an unknown-model error should fall back to the local table.
+            # Other errors (e.g. "Invalid token count" from exceeding a model's
+            # context/output limits) are real and must surface, not silently use
+            # different fallback pricing.
+            if "unknown model" not in str(e).lower():
+                raise
+
+    # Offline fallback: local pricing table (rate cards are not applied here).
     if vendor not in VENDOR_PRICING:
         raise ValueError(f"Vendor '{vendor}' not found in pricing table")
 
@@ -368,7 +417,7 @@ def validate_regulatory_completeness(decision: DecisionSnapshot, required_fields
 # Make classes and functions available for import
 __all__ = [
     'briefcase', 'DecisionSnapshot', 'Input', 'Output', 'ModelParameters', 'SqliteBackend', 'CostCalculator', 'DriftCalculator',
-    'get_backend', 'compute_cost', 'print_audit_summary', 'format_demo_answer', 'format_examiner_response',
+    'get_backend', 'compute_cost', 'available_rate_cards', 'print_audit_summary', 'format_demo_answer', 'format_examiner_response',
     'create_decision_snapshot', 'create_instrumented_decision', 'simulate_model_drift_detection',
     'validate_regulatory_completeness',
     'COMPANY', 'TEAMS', 'CUSTOMER_SEGMENTS', 'VENDOR_PRICING'

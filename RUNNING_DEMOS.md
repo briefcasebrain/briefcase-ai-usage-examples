@@ -1,6 +1,6 @@
 # Running Briefcase AI Demo Suites
 
-This repository showcases the open-source [`briefcase-ai`](https://github.com/briefcasebrain/briefcase-ai-sdk) SDK (v3.2.0) for AI governance and decision tracking. It is organized as a `patterns/` library of single-primitive demos plus four composition suites that assemble those primitives into realistic stories:
+This repository showcases the open-source [`briefcase-ai`](https://github.com/briefcasebrain/briefcase-ai-sdk) SDK (v3.2.1) for AI governance and decision tracking. It is organized as a `patterns/` library of single-primitive demos plus four composition suites that assemble those primitives into realistic stories:
 
 - **`patterns/`** — domain-neutral, one primitive per file (decision capture, bitemporal evidence, replay, drift, cost, PII sanitization, guardrails, …).
 - **`agentic-payments/`** — cross-border payment routing with bitemporal evidence, versioned policy, and examiner bundles.

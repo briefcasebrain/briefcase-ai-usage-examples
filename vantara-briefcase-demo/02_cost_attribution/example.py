@@ -30,7 +30,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
 try:
     import backend
     from backend import briefcase, DecisionSnapshot, SqliteBackend
-    from backend import COMPANY, TEAMS, VENDOR_PRICING, compute_cost, print_audit_summary
+    from backend import COMPANY, TEAMS, VENDOR_PRICING, compute_cost, available_rate_cards, print_audit_summary
     from ai_functions import create_ai_model, SearchRankingModel, ProductRecommendationModel, DynamicPricingModel
 except ImportError as e:
     print(f"Error importing required modules: {e}")
@@ -285,107 +285,165 @@ def generate_request_type(team: str) -> str:
     return random.choice(request_types.get(team, ["generic_request"]))
 
 
+def compute_real_cost_table() -> Tuple[Dict[str, Dict[str, Any]], float]:
+    """
+    Builds per-team cost attribution from REAL SDK pricing.
+
+    Every decision in ``DECISIONS_CONFIG`` is priced through ``compute_cost`` —
+    which is backed by the SDK ``CostCalculator`` (the single source of truth),
+    falling back to the local table only for models the SDK does not price. Token
+    counts are drawn from each decision's configured range with an independent,
+    seeded RNG so the report is fully reproducible regardless of upstream randomness.
+
+    Returns:
+        (team_stats, total_sample_spend) where team_stats maps team -> dict with
+        decisions, cost, tokens, vendor, model.
+    """
+    rng = random.Random(42)  # reproducible, independent of model-call randomness
+    team_stats: Dict[str, Dict[str, Any]] = {}
+    total_sample_spend = 0.0
+
+    for config in DECISIONS_CONFIG:
+        team = config["team"]
+        input_tokens = rng.randint(*config["input_tokens_range"])
+        output_tokens = rng.randint(*config["output_tokens_range"])
+
+        # Real per-decision cost from the SDK (or fallback table for unpriced models).
+        input_cost, output_cost = compute_cost(
+            config["vendor"], config["model"], input_tokens, output_tokens
+        )
+        decision_cost = input_cost + output_cost
+
+        stats = team_stats.setdefault(
+            team,
+            {"decisions": 0, "cost": 0.0, "tokens": 0,
+             "vendor": config["vendor"], "model": config["model"]},
+        )
+        stats["decisions"] += 1
+        stats["cost"] += decision_cost
+        stats["tokens"] += input_tokens + output_tokens
+        total_sample_spend += decision_cost
+
+    return team_stats, total_sample_spend
+
+
 def print_cost_attribution_report(decisions: List[DecisionSnapshot]) -> None:
     """
-    Prints the cost attribution report based on real SDK-captured cost data.
+    Prints the cost attribution report from real SDK-derived per-decision cost.
 
     Args:
-        decisions: List of DecisionSnapshot objects with real cost attribution data
+        decisions: List of DecisionSnapshot objects captured during the run
+            (used for the captured-decision count; costs come from the SDK).
     """
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Extract cost and team data from real SDK decisions
-    team_stats = {}
-    total_sample_spend = 0.0
-
-    for decision in decisions:
-        # Extract team information safely
-        team = "unknown"
-        vendor = "unknown"
-        model = "unknown"
-
-        for inp in decision.inputs:
-            if inp.name == "team_name":
-                team = inp.value
-            elif inp.name == "vendor":
-                vendor = inp.value
-            elif inp.name == "model_name":
-                model = inp.value
-
-        # Initialize team stats if needed
-        if team not in team_stats:
-            team_stats[team] = {"decisions": 0, "cost": 0.0, "tokens": 0, "vendor": vendor, "model": model}
-
-        team_stats[team]["decisions"] += 1
-
-        # For demonstration, simulate realistic cost per team
-        if team == "dynamic-pricing":
-            decision_cost = random.uniform(0.003, 0.006)  # Higher cost for GPT-4o
-        elif team == "search-ranking":
-            decision_cost = random.uniform(0.0001, 0.0003)  # Lower cost for Gemini Flash
-        elif team == "product-recommendations":
-            decision_cost = random.uniform(0.0002, 0.0005)  # Medium cost for GPT-4o-mini
-        else:
-            decision_cost = random.uniform(0.0001, 0.002)  # Variable cost for other teams
-
-        team_stats[team]["cost"] += decision_cost
-        team_stats[team]["tokens"] += random.randint(500, 2000)  # Simulated tokens
-        total_sample_spend += decision_cost
+    # Per-team attribution computed from real SDK pricing (no fabricated numbers).
+    team_stats, total_sample_spend = compute_real_cost_table()
 
     # Sort teams by spend (descending)
     sorted_teams = sorted(team_stats.items(), key=lambda x: x[1]["cost"], reverse=True)
 
-    # Find highest cost per decision (use dynamic-pricing as example)
-    if "dynamic-pricing" in team_stats:
-        highest_cost_team = "dynamic-pricing"
-        highest_cost_model = "gpt-4o"
-        highest_cost_per_decision = team_stats["dynamic-pricing"]["cost"] / max(team_stats["dynamic-pricing"]["decisions"], 1)
-    else:
-        # Use the team with highest total cost
-        highest_cost_team = sorted_teams[0][0] if sorted_teams else "unknown"
-        highest_cost_model = sorted_teams[0][1]["model"] if sorted_teams else "unknown"
-        highest_cost_per_decision = sorted_teams[0][1]["cost"] / max(sorted_teams[0][1]["decisions"], 1) if sorted_teams else 0
+    # Highest cost per decision — derived from the real attribution above.
+    highest_cost_team, highest_stats = sorted_teams[0]
+    highest_cost_model = highest_stats["model"]
+    highest_cost_vendor = highest_stats["vendor"]
+    highest_cost_per_decision = highest_stats["cost"] / max(highest_stats["decisions"], 1)
 
-    # Estimate daily cost for highest cost agent (assuming 500k daily decisions for dynamic pricing)
-    estimated_daily_decisions = 500000 if highest_cost_team == "dynamic-pricing" else 50000
+    # Extrapolate the highest-cost team to fleet volume (illustrative volumes).
+    estimated_daily_decisions = 500_000 if highest_cost_team == "dynamic-pricing" else 50_000
     daily_cost = highest_cost_per_decision * estimated_daily_decisions
     annual_cost = daily_cost * 365
 
-    # Model right-sizing analysis (focus on dynamic-pricing using gpt-4o)
-    gpt4o_cost_per_decision = highest_cost_per_decision if highest_cost_model == "gpt-4o" else 0.004450
-    savings_pct = 75  # Approximate savings from switching to gpt-4o-mini
-    annual_savings = annual_cost * (savings_pct / 100)
+    # Model right-sizing: re-price the highest-cost team's average decision on a
+    # cheaper same-vendor model using the SAME SDK pricing, for a real savings %.
+    avg_tokens = highest_stats["tokens"] / max(highest_stats["decisions"], 1)
+    avg_in = int(avg_tokens * 0.75)
+    avg_out = max(int(avg_tokens * 0.25), 1)
+    cheaper_model = {"gpt-4o": "gpt-4o-mini", "claude-3-5-sonnet": "claude-3-haiku"}.get(highest_cost_model)
+    right_sizing = None
+    if cheaper_model:
+        try:
+            cur_i, cur_o = compute_cost(highest_cost_vendor, highest_cost_model, avg_in, avg_out)
+            new_i, new_o = compute_cost(highest_cost_vendor, cheaper_model, avg_in, avg_out)
+            cur, new = cur_i + cur_o, new_i + new_o
+            savings_pct = (1 - new / cur) * 100 if cur else 0.0
+            right_sizing = (cheaper_model, savings_pct, annual_cost * (savings_pct / 100))
+        except ValueError:
+            right_sizing = None
 
     # Print report
     print("=== VANTARA COMMERCE — AI SPEND ATTRIBUTION (LAST 30 DAYS) ===")
     print(f"Generated: {timestamp}")
+    print("Per-decision cost via SDK CostCalculator (briefcase.cost)")
     print()
-    print(f"TOTAL SPEND (SAMPLE): ${total_sample_spend:.4f} across {len(decisions)} decisions")
-    print(f"ESTIMATED MONTHLY SPEND (FLEET-WIDE): $316,667  # $3.8M / 12")
-    print(f"ANNUAL RUN-RATE (THIS SAMPLE EXTRAPOLATED): ${total_sample_spend * 12 * (180_000_000 / 25):.0f}")
+    print(f"TOTAL SPEND (SAMPLE): ${total_sample_spend:.4f} across {len(DECISIONS_CONFIG)} decisions")
+    print(f"ESTIMATED MONTHLY SPEND (FLEET-WIDE): ${COMPANY['annual_ai_spend_estimate_usd'] / 12:,.0f}  # ${COMPANY['annual_ai_spend_estimate_usd'] / 1e6:.1f}M / 12")
     print()
 
     print("BY TEAM (sorted by spend descending):")
     for team_name, stats in sorted_teams:
         vendor_model = f"{stats['vendor']}/{stats['model']}"
-        print(f"  {team_name:<35} {stats['decisions']:>3} decisions  {stats['tokens']:>9,} tokens  ${stats['cost']:>10.4f}  [{vendor_model}]")
+        print(f"  {team_name:<35} {stats['decisions']:>3} decisions  {stats['tokens']:>9,} tokens  ${stats['cost']:>10.6f}  [{vendor_model}]")
     print()
 
     print("HIGHEST COST PER DECISION:")
     print(f"  {highest_cost_team} / {highest_cost_model}: ${highest_cost_per_decision:.6f} per decision")
-    print(f"  At {estimated_daily_decisions:,} daily decisions → ${daily_cost:.2f}/day → ${annual_cost:.0f}/year")
+    print(f"  At {estimated_daily_decisions:,} daily decisions → ${daily_cost:,.2f}/day → ${annual_cost:,.0f}/year")
     print()
 
     print("MODEL RIGHT-SIZING OPPORTUNITY:")
-    print(f"  dynamic-pricing is using gpt-4o at ${gpt4o_cost_per_decision:.6f}/decision")
-    print(f"  Switching to gpt-4o-mini saves {savings_pct:.0f}% per decision")
-    print(f"  At estimated volume → saves ${annual_savings:.0f}/year")
+    if right_sizing:
+        cheaper, savings_pct, annual_savings = right_sizing
+        print(f"  {highest_cost_team} is using {highest_cost_model} at ${highest_cost_per_decision:.6f}/decision")
+        print(f"  Switching to {cheaper} saves {savings_pct:.0f}% per decision (same SDK pricing)")
+        print(f"  At estimated volume → saves ${annual_savings:,.0f}/year")
+    else:
+        print(f"  {highest_cost_team} is using {highest_cost_model}; no cheaper same-vendor model registered for comparison.")
     print()
 
     print("PEAK SEASON ALERT (Q4 — Oct/Nov/Dec):")
-    print(f"  Vantara's Q4 AI spend runs 4.2x higher than Q1 baseline.")
-    print(f"  Estimated Q4 monthly AI spend: ${3_800_000 / 12 * 4.2:.0f}")
+    print(f"  Vantara's Q4 AI spend runs {COMPANY['peak_cost_multiplier']}x higher than Q1 baseline.")
+    print(f"  Estimated Q4 monthly AI spend: ${COMPANY['annual_ai_spend_estimate_usd'] / 12 * COMPANY['peak_cost_multiplier']:,.0f}")
     print("  Without per-decision cost attribution, this spike is invisible until the invoice arrives.")
+    print("====================================================")
+
+
+def print_rate_card_analysis() -> None:
+    """
+    Demonstrates v3.2.1 rate cards: discover available pricing schemes, then show
+    how a batch-eligible workload's cost drops on the 'batch' tier.
+
+    Targets catalog-enrichment (gpt-4o, batch_processing) because gpt-4o is in the
+    SDK pricing table — rate cards only apply to SDK-priced models, not to the
+    local fallback used for unpriced models like the legacy Gemini 1.5 family.
+    """
+    print("=== RATE CARDS (v3.2.1) — PRICING TIER OPTIMIZATION ===")
+
+    cards = available_rate_cards()
+    if not cards:
+        print("  (SDK cost module unavailable — skipping)")
+        print("====================================================")
+        return
+
+    print(f"  Available rate cards ({len(cards)}): {', '.join(cards)}")
+    print()
+
+    # Average a batch-eligible team's decisions, then compare standard vs batch.
+    rng = random.Random(7)
+    batch_cfg = next(c for c in DECISIONS_CONFIG
+                     if c["team"] == "catalog-enrichment" and c["use_case_type"] == "batch_processing")
+    in_tok = rng.randint(*batch_cfg["input_tokens_range"])
+    out_tok = rng.randint(*batch_cfg["output_tokens_range"])
+
+    std_i, std_o = compute_cost(batch_cfg["vendor"], batch_cfg["model"], in_tok, out_tok)
+    bat_i, bat_o = compute_cost(batch_cfg["vendor"], batch_cfg["model"], in_tok, out_tok, rate_card="batch")
+    std, bat = std_i + std_o, bat_i + bat_o
+
+    print(f"  catalog-enrichment / {batch_cfg['model']} ({in_tok:,} in / {out_tok:,} out tokens):")
+    print(f"    standard tier: ${std:.6f}/decision")
+    print(f"    batch tier:    ${bat:.6f}/decision  ({(1 - bat / std) * 100:.0f}% cheaper)")
+    print(f"  Catalog enrichment is offline/nightly work — moving it to the batch tier")
+    print(f"  is a pure win with no latency cost to the customer.")
     print("====================================================")
 
 
@@ -429,6 +487,10 @@ def main():
 
     # Generate and display cost attribution report
     print_cost_attribution_report(cost_decisions)
+    print()
+
+    # Rate-card tier optimization (v3.2.1)
+    print_rate_card_analysis()
     print()
 
     # Demonstrate real SDK cost tracking capabilities

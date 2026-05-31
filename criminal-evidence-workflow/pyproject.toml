@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Briefcase AI SDK demo for criminal evidence summarization"
 requires-python = ">=3.9"
 dependencies = [
-    "briefcase-ai>=3.2.0",
+    "briefcase-ai>=3.2.1",
     "rouge-score>=0.1.2",
 ]
 

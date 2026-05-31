@@ -5,7 +5,7 @@ Single-file, domain-neutral demonstrations of each SDK primitive. For readers wh
 Every pattern has:
 - a `.py` script — runnable standalone in <1s, prints a tight narrative
 - a `.ipynb` sibling — same code split into cells with markdown intros
-- a `patterns_walkthrough.ipynb` unified tour — all 11 primitives in one notebook, for readers who prefer one file
+- a `patterns_walkthrough.ipynb` unified tour — all 14 primitives in one notebook, for readers who prefer one file
 
 ```
 pip install -r patterns/requirements.txt
@@ -27,6 +27,9 @@ python patterns/02_bitemporal_evidence.py   # or any other
 | 09 | [`Sanitizer`](09_pii_sanitization.py) | PII detection + redaction for free text and structured payloads. |
 | 10 | [`GuardrailPipeline`](10_guardrail_pipeline.py) | Compose multiple allow/deny stages; `FIRST_DENY` short-circuits. |
 | 11 | [`DecisionSnapshot` replay](11_decision_replay.py) | Re-run a candidate against stored inputs; diff outputs. |
+| 12 | [`rate_card`](12_rate_card_pricing.py) | Re-price a decision by `platform x tier x modifier`; batch is half price. |
+| 13 | [cache tokens + `cache_cost`](13_prompt_cache_cost.py) | Prompt-cache economics: reads ~0.1x input, write premium, breakeven. |
+| 14 | [multi-cloud rate cards](14_multicloud_cost.py) | Same model across first-party/Bedrock/Vertex/Azure; tier & region levers. |
 
 ## Composition matrix
 
@@ -45,10 +48,13 @@ Rows = primitives. Columns = example suites in this repo that compose them. A `�
 | 09 `Sanitizer` |   |   |   |   |   |   | ✓ |   |
 | 10 `GuardrailPipeline` |   |   |   |   |   |   | ✓ |   |
 | 11 Decision replay |   |   |   |   |   |   | ✓ |   |
+| 12 `rate_card` |   |   |   |   |   |   |   | ✓ |
+| 13 cache cost |   |   |   |   |   |   |   |   |
+| 14 multi-cloud pricing |   |   |   |   |   |   |   |   |
 
 ## How to read this library
 
-- **Reading the SDK:** start at pattern 01, then 02 → 06 for the replay family, then 07–11 in any order.
+- **Reading the SDK:** start at pattern 01, then 02 → 06 for the replay family, then 07–14 in any order (07, 12–14 are the cost family).
 - **Picking primitives for your domain:** skim the index; the "What it shows" column identifies which primitive answers which question.
 - **Understanding a domain example:** find its column in the matrix. The ticked rows are the primitives it composes; jump to those pattern files for the minimal demonstrations.
 

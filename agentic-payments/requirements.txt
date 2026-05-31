@@ -1,1 +1,1 @@
-briefcase-ai[bitemporal,compliance,routing,external]>=3.2.0
+briefcase-ai[bitemporal,compliance,routing,external]>=3.2.1

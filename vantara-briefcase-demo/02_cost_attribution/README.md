@@ -16,17 +16,18 @@ This example demonstrates how Briefcase AI solves the enterprise AI cost visibil
 
 Briefcase AI captures cost at the decision level, enabling precise bottom-up attribution:
 
-1. **Per-Decision Costing**: Every AI decision includes input/output token costs
+1. **Per-Decision Costing**: Every AI decision is priced through the SDK `CostCalculator` (input/output token costs)
 2. **Team Attribution**: Aggregate individual decisions to team-level spend
 3. **Model Comparison**: Compare actual costs across different model choices
 4. **Peak Season Tracking**: Real-time visibility into seasonal cost multipliers
 5. **Right-Sizing Analysis**: Identify opportunities to switch to cheaper models
+6. **Rate-Card Tiers** *(v3.2.1)*: Re-price batch-eligible workloads on the `batch` tier (≈50% cheaper) and discover available pricing schemes via `get_available_rate_cards()`
 
 ## Running the Example
 
 ### Prerequisites
 - Python 3.9 or higher
-- Briefcase AI SDK (falls back to mock implementation if not available)
+- Briefcase AI SDK v3.2.1+ (`pip install briefcase-ai`) — required; the demo exits if it is not installed
 
 ### Basic Usage
 ```bash
@@ -41,48 +42,60 @@ jupyter notebook cost_attribution_walkthrough.ipynb
 
 ## Expected Output
 
-The example analyzes 25 decisions across 10 teams with realistic token usage and costs:
+The example analyzes 25 decisions across 10 teams. Costs are computed by the SDK
+`CostCalculator` and the run is seeded, so the numbers are reproducible:
 
 ```
 === VANTARA COMMERCE — AI SPEND ATTRIBUTION (LAST 30 DAYS) ===
-Generated: 2024-02-24 10:45:30
+Generated: 2026-05-30 23:50:08
+Per-decision cost via SDK CostCalculator (briefcase.cost)
 
-TOTAL SPEND (SAMPLE): $0.0234 across 25 decisions
+TOTAL SPEND (SAMPLE): $0.1740 across 25 decisions
 ESTIMATED MONTHLY SPEND (FLEET-WIDE): $316,667  # $3.8M / 12
-ANNUAL RUN-RATE (THIS SAMPLE EXTRAPOLATED): $675,360,000
 
 BY TEAM (sorted by spend descending):
-  dynamic-pricing                   2 decisions      2,100 tokens    $0.0089  [openai/gpt-4o]
-  catalog-enrichment                3 decisions      8,500 tokens    $0.0067  [openai/gpt-4o]
-  demand-forecasting                2 decisions     12,800 tokens    $0.0045  [google-vertex/gemini-1.5-pro]
+  catalog-enrichment                    3 decisions     13,324 tokens  $  0.090980  [openai/gpt-4o]
+  demand-forecasting                    2 decisions     12,227 tokens  $  0.024640  [google-vertex/gemini-1.5-pro]
+  customer-support-ai                   2 decisions      4,210 tokens  $  0.022686  [anthropic/claude-3-5-sonnet]
+  supplier-risk                         2 decisions      6,570 tokens  $  0.012701  [google-vertex/gemini-1.5-pro]
+  dynamic-pricing                       2 decisions      1,872 tokens  $  0.012680  [openai/gpt-4o]
   ...
 
 HIGHEST COST PER DECISION:
-  dynamic-pricing / gpt-4o: $0.004450 per decision
-  At 500,000 daily decisions → $2,225.00/day → $812,125/year
+  catalog-enrichment / gpt-4o: $0.030327 per decision
+  At 50,000 daily decisions → $1,516.33/day → $553,462/year
 
 MODEL RIGHT-SIZING OPPORTUNITY:
-  dynamic-pricing is using gpt-4o at $0.004450/decision
-  Switching to gpt-4o-mini saves 75% per decision
-  At estimated volume → saves $609,094/year
+  catalog-enrichment is using gpt-4o at $0.030327/decision
+  Switching to gpt-4o-mini saves 97% per decision (same SDK pricing)
+  At estimated volume → saves $534,091/year
 
 PEAK SEASON ALERT (Q4 — Oct/Nov/Dec):
   Vantara's Q4 AI spend runs 4.2x higher than Q1 baseline.
   Estimated Q4 monthly AI spend: $1,330,000
   Without per-decision cost attribution, this spike is invisible until the invoice arrives.
+
+=== RATE CARDS (v3.2.1) — PRICING TIER OPTIMIZATION ===
+  Available rate cards (15): standard, batch, cached, priority, flex, first_party:fast,
+  first_party:standard,us, bedrock:standard, bedrock:batch, bedrock:standard,regional,
+  vertex:standard, vertex:batch, vertex:standard,regional, azure:standard, azure:standard,regional
+
+  catalog-enrichment / gpt-4o (3,326 in / 1,470 out tokens):
+    standard tier: $0.038680/decision
+    batch tier:    $0.019340/decision  (50% cheaper)
 ```
 
 ## Key Insights
 
 ### Cost Breakdown Analysis
-- **Dynamic Pricing**: Highest cost per decision ($0.004450) due to GPT-4o usage
-- **Catalog Enrichment**: Second highest spend due to batch processing volume
+- **Catalog Enrichment**: Highest spend — GPT-4o on large batch-processing payloads
+- **Demand Forecasting / Customer Support**: Next tier — large-context Gemini Pro and Claude Sonnet calls
 - **Search Ranking**: High volume but low per-decision cost with Gemini Flash
-- **Total Sample**: $0.0234 across 25 decisions extrapolates to enterprise scale
+- **Total Sample**: $0.1740 across 25 decisions extrapolates to enterprise scale
 
 ### Right-Sizing Opportunities
-1. **Dynamic Pricing GPT-4o → GPT-4o-mini**: 75% cost savings = $609K annually
-2. **Catalog Enrichment**: Could evaluate Anthropic Claude Haiku for batch tasks
+1. **Catalog Enrichment GPT-4o → GPT-4o-mini**: ~97% cost savings on the same workload
+2. **Catalog Enrichment batch tier**: nightly/offline work re-priced on the `batch` rate card is ~50% cheaper with no latency cost
 3. **Customer Support**: Consider switching from Claude Sonnet to Claude Haiku
 
 ### Peak Season Impact
@@ -113,7 +126,9 @@ PEAK SEASON ALERT (Q4 — Oct/Nov/Dec):
 ## Technical Implementation
 
 ### Cost Calculation
-- Uses exact vendor pricing from VENDOR_PRICING table
+- Pricing comes from the SDK `CostCalculator` (`briefcase.cost`) — the single source of truth, with the latest provider pricing built in
+- `rate_card` selects a `platform × tier × modifier` pricing scheme (e.g. `batch`, `bedrock:standard,regional`); call `available_rate_cards()` to list them
+- The local `VENDOR_PRICING` table is only an offline fallback for models the SDK does not price (e.g. Cohere, legacy Gemini 1.5)
 - Separates input and output token costs for transparency
 - Handles batch processing with cost-per-decision calculation
 - Validates cost computation accuracy in audit trail
